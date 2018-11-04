@@ -1,11 +1,10 @@
 ## ray
-ray <-function(x=0,y=100,z=0,D=c(1,0,0),t=1,color="yellow",alpha="1")
+ray <-function(O=c(0,0,0),D=c(1,0,0),color="yellow",alpha="1")
 {
-    ray <- list('O'     =  c(x,y,z),
+    ray <- list('O'     =  O,
                  'D'     = D,
                  'color' = color,
-                 'alpha' = alpha,
-                 't'     =  t)
+                 'alpha' = alpha)
     class(ray) <- "ray"
     return(ray)
 }
@@ -60,54 +59,77 @@ rotationMatrix <-function(r,theta)
     MM <- matrix(m ,3,3,byrow=TRUE)
     M <- r %*% t(r)
     I <-  diag(3)
-    TM <- (1- cos(theta)) * MM + cos(theta) * I + sin(theta) * M
+    TM <- (1- cos(theta)) * M + cos(theta) * I + sin(theta) * MM
     return(round(TM,3))
 }
 
 
-
-## old
-intersect.old <- function(ray,oShape)
+refract <-function(ray,t,drop)
 {
+    ## calculate interaction point
+    iP <- point.ray(ray,t)
 
-    a=1
-    b = 2 * ray$D %*% (ray$O - oShape$O)
-    c = (ray$O - oShape$O) %*% (ray$O - oShape$O) - oShape$R^2
+    ## calculate normal on drop
+    nD <- normal.drop(drop,iP)
 
-    d <- b^2 - 4*a*c
+    ## calculate normal to refraction plane
+    nR <- cross(iP - drop$O,ray$D)
+    nR <- nR * c(1/norm(nR,type="2"))
 
-    nv <- function(p,o=oShape$O)
+    ## calculate theta, incident angle
+    thetaI = abs(c(acos(ray$D %*% nD)))
+    if(thetaI > pi/2)
     {
-        nv <- (p-o)
-        sf <- 1/norm(nv,type = "2")
-        nv <-  nv * c(sf)
+        thetaI <- pi - thetaI
     }
 
-    r1 = NULL
-    if(d > 0)
-    {
-        t1 <- (-b + sqrt(d))/2
-        p1 <- point.ray(ray,t1)
-        n1 <- nv(p1)
-        r1 <- p1-oShape$O
-        t2 <- (-b - sqrt(d))/2
-        p2 <- point.ray(ray,t2)
-        n2 <- nv(p2)
-    } else if ( d == 0 )
-    {
-        t1 <- -b/2
-        p1 <- point.ray(ray,t1)
-        n1 <- nv(p1)
-        t2 <- NULL
-        p2 <- NULL
-    } else
-    {
-        t1 <- NULL
-        p1 <- NULL
-        t2 <- NULL
-        p2 <- NULL
-    }
+    ## calculate excident angle Outside --> In
+    thetaE <- asin(sin(thetaI/drop$n))
 
-    return(list('t1' = t1, 'p1' = p1, 'n1' = n1,'r1'=r1,
-                't2' = t2, 'p2' = p2, 'n2' = n2))
+    ## calculate rotation of ray
+    dTheta <- thetaE - thetaI
+
+    ## create new rotated ray
+    rA <- pi + thetaE
+    rm <- rotationMatrix(nR,rA)
+    ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
+    rRay <- ray(O=iP,(nD %*% rm) ,color="grey")
+
+    return(rRay)
+
 }
+
+reflect <-function(ray,t,drop)
+{
+    browser()
+    ## calculate interaction point
+    iP <- point.ray(ray,t)
+
+    ## calculate normal on drop
+    nD <- normal.drop(drop,iP)
+
+    ## calculate normal to refraction plane
+    nR <- cross(iP - drop$O,ray$D)
+    nR <- nR * c(1/norm(nR,type="2"))
+
+    ## calculate theta, incident angle
+    cv <- as.vector(ray$D) %*% as.vector(nD)
+    ##    thetaI = abs(c(acos(ray$D %*% nD)))
+    thetaI = abs(c(acos(cv)))
+    if(thetaI > pi/2)
+    {
+        thetaI <- pi - thetaI
+    }
+
+
+    ## create new rotated ray
+    rA <- - thetaI
+    rm <- rotationMatrix(nR,rA)
+    ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
+    rRay <- ray(O=iP,(nD %*% rm) ,color="yellow")
+
+    return(rRay)
+
+}
+
+

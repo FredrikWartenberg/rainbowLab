@@ -10,13 +10,13 @@ spheres3dS <- function(x0 = 0, y0 = 0, z0 = 0, r = 1, n = 101, ...){
 
 
 ## simple scene
-drop <-function(x=0,y=0,z=0,R=100,color="green",alpha="0.1",n=1.33)
+drop <- function(x=0,y=0,z=0,R=100,color="green",alpha="0.1",n=1.33)
 {
     drop <- list('O'     =  c(x,y,z),
                  'R'     = R,
                  'color' = color,
                  'alpha' = alpha,
-                 'n'     =  1,33)
+                 'n'     =  n)
     class(drop) <- "drop"
     return(drop)
 }
@@ -29,13 +29,13 @@ render.drop <- function(drop)
 
 ## calculate the normal vector on
 ## the surface of the drop
-normal.drop <-function(drop, point, accuracy = 1E-12)
+normal.drop <-function(drop, point)
 {
 
     nv <- (point-drop$O)
-    if(abs(norm(nv,type = "2") - drop$R)> accuracy)
+    if(abs(norm(nv,type = "2") - drop$R)> accuracy())
     {
-        warning("Point for normal caclulatrion not on surface of drop")
+        warning("Point for normal calculatrion not on surface of drop")
     }
     sf <- 1/norm(nv,type = "2")
     nv <-  nv * c(sf)

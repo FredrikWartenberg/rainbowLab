@@ -5,15 +5,14 @@ library(pracma)
 source("generics.R")
 source("drop.R")
 source("ray.R")
-source("physics.R")
 
 ## constants and parameters
-rbP <- list("box" = 1000, "dropR" = 400)
+rbP <- list("box" = 1000, "dropR" = 200)
 
 ## display the window
 r3dDefaults ## reset
 open3d(windowRect = c(100,100,1000,1000))
-bg3d(color=c("#664455"))
+bg3d(color=c("#333333"))
 
 ## add the drop
 drop <- drop(x=500,R=rbP$dropR, color="blue")
@@ -26,45 +25,24 @@ arrow3d(p0=c(0,0,-rbP$box),p1=c(0,0,rbP$box),s=1/20,color="red")
 
 
 ## test ray intersection
-r1 <- ray(O=c(-200,-350,0))
-r1$color <- "yellow"
+r1 <- ray(x=-200)
+r1$color <- "red"
 
 ## Intersect
 i <- intersect(r1,drop)
-render(r1,i$t2)
+render(r1,i$t1)
 
 ## calculate surface point and normal vector
-sp <- point.ray(r1,i$t2) ## intersection point
+sp <- point.ray(r1,i$t1)
 nv <- normal.drop(drop,sp)
 arrow3d(drop$O,sp,color="red")
-arrow3d(sp,sp+nv*200,s=1/2,color="red")
+arrow3d(sp,sp+nv*50,color="red")
 
 ## plot normal plane
-##planes3d(nv,d= - nv %*% sp,  alpha=0.1)
+planes3d(nv,d= - nv %*% sp,  alpha=0.1)
 
 ## plot plane containing intersection point, ray and normal vector
 nn1 <- cross(sp-drop$O,sp)
 nn1 <- nn1 * c(1/norm(nn1,type="2"))
 planes3d(nn1,d = - nn1 %*% sp, alpha=0.1)
-
-## now generate second ray, which is refracted into the drop
-theta = abs(c(acos(r1$D %*% nv)))
-if(theta > pi/2)
-{
-    theta <- theta - pi/2
-}
-
-rm <- rotationMatrix(nn1,theta*2)
-r2 <- ray(O=sp,D=r1$D %*% rm,color="green")
-render(r2,t=300)
-
-## test refraction
-rr <- refract(r1,i$t2,drop)
-i2 <- intersect(rr,drop)
-render(rr,t=i2$t1)
-
-## test reflection
-##rfl <- reflect(rr,i2$t1,drop)
-##i3 <- intersect(rfl,drop)
-##render(rr,t=i3$t1)
 
