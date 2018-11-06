@@ -40,6 +40,6 @@ normal.drop <-function(drop, point)
     sf <- 1/norm(nv,type = "2")
     nv <-  nv * c(sf)
 
-    return(nv)
+    return(as.vector(nv))
 
 }

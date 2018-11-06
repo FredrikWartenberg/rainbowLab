@@ -25,7 +25,7 @@ bbr <- function(f,T=6000,pc=physcialConstants)
 bbx <- function(x){bbr(x,6000,physConstants)}
 
 ## Plot BBR
-##curve(bbx,from=1,to=1E15)
+curve(bbx,from=1,to=1E15)
 
 ##     This converts a given wavelength of light to an
 ##     approximate RGB color value. The wavelength must be given
@@ -37,7 +37,7 @@ bbx <- function(x){bbr(x,6000,physConstants)}
 ##     and
 ##     http://www.noah.org/wiki/Wavelength_to_RGB_in_Python
 
-lambda2rgb <-function (wavelength, alpha= 1, gamma=0.8)
+wavelength2rgb <-function (wavelength, alpha= 1, gamma=0.8)
 {
     if (wavelength >= 380 & wavelength <= 440)
     {

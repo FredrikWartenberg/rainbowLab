@@ -3,8 +3,11 @@ library(data.table)
 library(pracma)
 
 source("generics.R")
+source("render.R")
 source("drop.R")
 source("ray.R")
+source("arrow.R")
+source("path.R")
 source("physics.R")
 
 ## constants and parameters
@@ -20,13 +23,19 @@ drop <- drop(x=500,R=rbP$dropR, color="blue")
 render(drop)
 
 ## add coordinate system
-arrow3d(p0=c(-rbP$box,0,0),p1=c(rbP$box,0,0),s=1/20,color="black")
-arrow3d(p0=c(0,-rbP$box,0),p1=c(0,rbP$box,0),s=1/20,color="blue")
-arrow3d(p0=c(0,0,-rbP$box),p1=c(0,0,rbP$box),s=1/20,color="red")
+coordSys <- sceneGraph()
+coordSys[['x']] <- arrow(p0=c(-rbP$box,0,0),p1=c(rbP$box,0,0),s=1/20,color="red")
+coordSys[['y']] <- arrow(p0=c(0,-rbP$box,0),p1=c(0,rbP$box,0),s=1/20,color="green")
+coordSys[['z']] <- arrow(p0=c(0,0,-rbP$box),p1=c(0,0,rbP$box),s=1/20,color="black")
+render(coordSys)
+##arrow3d(p0=c(-rbP$box,0,0),p1=c(rbP$box,0,0),s=1/20,color="red")
+##arrow3d(p0=c(0,-rbP$box,0),p1=c(0,rbP$box,0),s=1/20,color="green")
+##arrow3d(p0=c(0,0,-rbP$box),p1=c(0,0,rbP$box),s=1/20,color="black")
+
 
 
 ## test ray intersection
-r1 <- ray(O=c(-200,-350,0))
+r1 <- ray(O=c(-200,-150,0))
 r1$color <- "yellow"
 
 ## Intersect
@@ -58,13 +67,23 @@ rm <- rotationMatrix(nn1,theta*2)
 r2 <- ray(O=sp,D=r1$D %*% rm,color="green")
 render(r2,t=300)
 
-## test refraction
-rr <- refract(r1,i$t2,drop)
-i2 <- intersect(rr,drop)
-render(rr,t=i2$t1)
+## test refraction o2i
+o2i <- refract(r1,i$t2,drop,dir="o2i")
+i2 <- intersect(o2i,drop)
+render(o2i,t=i2$t1)
 
 ## test reflection
-##rfl <- reflect(rr,i2$t1,drop)
-##i3 <- intersect(rfl,drop)
-##render(rr,t=i3$t1)
+i2i <- reflect(o2i,i2$t1,drop)
+i3 <- intersect(i2i,drop)
+render(i2i,t=i3$t1)
+
+## test refraction i2o
+i2o <- refract(i2i,i2$t1,drop,dir="i2o")
+i2o$color = "black"
+render(i2o,t=600)
+## plot normal vector
+dp <- point.ray(i2i,i3$t1)
+nv2 <- normal.drop(drop,dp)
+arrow3d(dp,dp+nv2*200,s=1/2,color="green")
+
 

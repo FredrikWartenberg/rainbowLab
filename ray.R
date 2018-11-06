@@ -11,7 +11,7 @@ ray <-function(O=c(0,0,0),D=c(1,0,0),color="yellow",alpha="1")
 
 point.ray <- function(ray,t)
 {
-    ray$O + c(t) * ray$D
+    as.vector(ray$O + c(t) * ray$D)
 }
 
 render.ray <- function(ray,t)
@@ -51,7 +51,8 @@ intersect.ray <- function(ray,oShape)
 
     return(res)
 }
-
+## Rotation around arbitrary axis r with angle theta
+## source: http://ksuweb.kennesaw.edu/~plaval/math4490/rotgen.pdf
 rotationMatrix <-function(r,theta)
 {
     ## rotation matrix
@@ -60,11 +61,11 @@ rotationMatrix <-function(r,theta)
     M <- r %*% t(r)
     I <-  diag(3)
     TM <- (1- cos(theta)) * M + cos(theta) * I + sin(theta) * MM
-    return(round(TM,3))
+    return(TM)
 }
 
 
-refract <-function(ray,t,drop)
+refract <-function(ray,t,drop,dir) ##,dir="o2i")
 {
     ## calculate interaction point
     iP <- point.ray(ray,t)
@@ -84,16 +85,36 @@ refract <-function(ray,t,drop)
     }
 
     ## calculate excident angle Outside --> In
-    thetaE <- asin(sin(thetaI/drop$n))
+    if(dir == "o2i")
+    {
+        thetaE <- asin(sin(thetaI/drop$n))
+        ## calc rotation angle
+        rA <- pi + thetaE
+    } else if(dir == "i2o")
+    {
+        sinThetaE <- sin(thetaI*drop$n)
+        if(sinThetaE <= 1)
+        {
+            thetaE <- asin(sinThetaE)
+            ## create new rotated ray
+            rA <- - thetaE
+            cat(paste("refraction i2o thetaI = " ,
+                      round(thetaI*180/pi),
+                      "thetaE =",
+                      round(thetaE*180/pi), "\n"))
+        } else
+        {
+            RA <- pi + thetaI
+            cat("Total reflection i2o")
+        }
+    } else
+    {
+        stop(paste("Unkown direction", dir))
+    }
 
-    ## calculate rotation of ray
-    dTheta <- thetaE - thetaI
-
-    ## create new rotated ray
-    rA <- pi + thetaE
     rm <- rotationMatrix(nR,rA)
     ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
-    rRay <- ray(O=iP,(nD %*% rm) ,color="grey")
+    rRay <- ray(O=iP,as.vector((nD %*% rm)) ,color="grey")
 
     return(rRay)
 
@@ -101,12 +122,13 @@ refract <-function(ray,t,drop)
 
 reflect <-function(ray,t,drop)
 {
-    browser()
     ## calculate interaction point
     iP <- point.ray(ray,t)
 
     ## calculate normal on drop
     nD <- normal.drop(drop,iP)
+
+    arrow3d(iP,iP + 200 * nD,color="blue")
 
     ## calculate normal to refraction plane
     nR <- cross(iP - drop$O,ray$D)
@@ -121,12 +143,10 @@ reflect <-function(ray,t,drop)
         thetaI <- pi - thetaI
     }
 
-
     ## create new rotated ray
-    rA <- - thetaI
+    rA <- thetaI + pi
     rm <- rotationMatrix(nR,rA)
-    ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
-    rRay <- ray(O=iP,(nD %*% rm) ,color="yellow")
+    rRay <- ray(O=iP,as.vector(nD %*% rm) ,color="yellow")
 
     return(rRay)
 
