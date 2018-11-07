@@ -6,6 +6,19 @@ sceneGraph <- function()
     return(scg)
 }
 
+getShape <- function(object,t)
+{
+    UseMethod("getShape",object)
+}
+
+getShape.ray <- function(ray,t)
+{
+    arrow(point.ray(ray,t),
+          point.ray(ray,0),
+          s=1/20,
+          color=ray$color)
+}
+
 render <- function(shape,t)
 {
     UseMethod("render",shape)
