@@ -20,8 +20,8 @@ bg3d(color=c("#664455"))
 
 ## Build the static scene
 fullScene <- sceneGraph()
-drop <- drop(x=500,R=rbP$dropR, color="blue")
-fullScene[['drop']] <- drop
+rDrop <- drop(x=500,R=rbP$dropR, color="blue")
+fullScene[['rDrop']] <- rDrop
 
 
 ## add coordinate system
@@ -32,70 +32,37 @@ coordSys[['z']] <- arrow(p0=c(0,0,-rbP$box),p1=c(0,0,rbP$box),s=1/20,color="blac
 fullScene[['coordSys']] <- coordSys
 
 
-## Old stuff
-##r1 <- ray(O=c(-200,-150,0))
-
-
 
 ## ## test ray intersection
-r1 <- ray(O=c(-200,-150,0))
-r1$color <- "yellow"
+#r1 <- ray(O=c(-200,150,0),lambda=600)
+##s1 <- launch(r1,rDrop,maxInteractions=3)
+##s1$scg[['r1Exit']] <- fanOut(s1$ray,10000)
+##fullScene[['r1']] <- s1$scg
+nI = 4
+r1 <- ray(O=c(-200,150,0),lambda=450)
+fullScene[['r1']] <- follow(r1,rDrop,t=20000,nInt = nI)
 
-## ## Intersect
-##i <- intersect(r1,drop)
-##fullScene[['r1']] <- getShape(r1,i$t2)
-s2 <- launch(r1,drop,maxInteractions=3)
-fullScene[['r1']] <- s2$scg
+r2 <- ray(O=c(-200,150,0),lambda=550)
+fullScene[['r2']] <- follow(r2,rDrop,t=20000,nInt = nI)
+
+r3 <- ray(O=c(-200,150,0),lambda=650)
+fullScene[['r3']] <- follow(r3,rDrop,t=20000,nInt = nI)
+
+r4 <- ray(O=c(-200,150,0),lambda=700)
+fullScene[['r4']] <- follow(r4,rDrop,t=20000,nInt = nI)
+
+
+## s2 <- launch(r2,rDrop,maxInteractions=3)
+## fullScene[['r2']] <- s2$scg
+
+## r3 <- ray(O=c(-200,150,0),lambda=700)
+## s3 <- launch(r3,rDrop,maxInteractions=3)
+## fullScene[['r3']] <- s3$scg
 
 
 ## renderstatic  scene
 render(fullScene)
 
 
-## ## calculate surface point and normal vector
-## sp <- point.ray(r1,i$t2) ## intersection point
-## nv <- normal.drop(drop,sp)
-## arrow3d(drop$O,sp,color="red")
-## arrow3d(sp,sp+nv*200,s=1/2,color="red")
-
-## ## plot normal plane
-## ##planes3d(nv,d= - nv %*% sp,  alpha=0.1)
-
-## ## plot plane containing intersection point, ray and normal vector
-## nn1 <- cross(sp-drop$O,sp)
-## nn1 <- nn1 * c(1/norm(nn1,type="2"))
-## planes3d(nn1,d = - nn1 %*% sp, alpha=0.1)
-
-## ## now generate second ray, which is refracted into the drop
-## theta = abs(c(acos(r1$D %*% nv)))
-## if(theta > pi/2)
-## {
-##     theta <- theta - pi/2
-## }
-
-## rm <- rotationMatrix(nn1,theta*2)
-## r2 <- ray(O=sp,D=r1$D %*% rm,color="green")
-## render(r2,t=300)
-
-## ## test refraction o2i
-## o2i <- refract(r1,i$t2,drop,dir="o2i")
-## i2 <- intersect(o2i,drop)
-## render(o2i,t=i2$t1)
-
-## ---
-
-## ## test reflection
-## i2i <- reflect(o2i,i2$t1,drop)
-## i3 <- intersect(i2i,drop)
-## render(i2i,t=i3$t1)
-
-## ## test refraction i2o
-## i2o <- refract(i2i,i2$t1,drop,dir="i2o")
-## i2o$color = "black"
-## render(i2o,t=600)
-## ## plot normal vector
-## dp <- point.ray(i2i,i3$t1)
-## nv2 <- normal.drop(drop,dp)
-## arrow3d(dp,dp+nv2*200,s=1/2,color="green")
 
 

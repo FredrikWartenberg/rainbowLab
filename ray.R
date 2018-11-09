@@ -1,9 +1,10 @@
 ## ray
-ray <-function(O=c(0,0,0),D=c(1,0,0),color="yellow",alpha="1")
+ray <-function(O=c(0,0,0),D=c(1,0,0),lambda=600,alpha="1")
 {
     ray <- list('O'     =  O,
-                 'D'     = D,
-                 'color' = color,
+                'D'     = D,
+                'lambda' = lambda,
+                 'color' = lambda2rgb(lambda),
                  'alpha' = alpha)
     class(ray) <- "ray"
     return(ray)
@@ -14,16 +15,16 @@ point.ray <- function(ray,t)
     as.vector(ray$O + c(t) * ray$D)
 }
 
-render.ray <- function(ray,t)
-{
-    p0=ray$O
-    p1 <- p0 + ray$D * c(t)
-    ##arrow3d(p0,p1,s=1/20,color=ray$color)
-    arrow3d(point.ray(ray,0),
-            point.ray(ray,t),
-            s=1/20,
-            color=ray$color)
-}
+## render.ray <- function(ray,t)
+## {
+## ##    p0=ray$O
+## ##    p1 <- p0 + ray$D * c(t)
+##     ##arrow3d(p0,p1,s=1/20,color=ray$color)
+##     arrow3d(point.ray(ray,t),
+##             point.ray(ray,0),
+##             s=1/20,
+##             color=ray$color)
+## }
 
 intersect.ray <- function(ray,oShape)
 {
@@ -85,13 +86,16 @@ refract <-function(ray,t,drop,dir) ##,dir="o2i")
     }
 
     ## calculate excident angle Outside --> In
+    n <- drop$ri(ray$lambda)
     if(dir == "o2i")
     {
-        thetaE <- asin(sin(thetaI/drop$n))
+        thetaE <- asin(sin(thetaI/n))
         ## calc rotation angle
         rA <- pi + thetaE
     } else if(dir == "i2o")
     {
+
+        n <- drop$ri(ray$lambda)
         sinThetaE <- sin(thetaI*drop$n)
         if(sinThetaE <= 1)
         {
@@ -114,7 +118,7 @@ refract <-function(ray,t,drop,dir) ##,dir="o2i")
 
     rm <- rotationMatrix(nR,rA)
     ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
-    rRay <- ray(O=iP,as.vector((nD %*% rm)) ,color="grey")
+    rRay <- ray(O=iP,as.vector((nD %*% rm)) ,lambda=ray$lambda)
 
     return(rRay)
 
@@ -127,8 +131,6 @@ reflect <-function(ray,t,drop)
 
     ## calculate normal on drop
     nD <- normal.drop(drop,iP)
-
-    arrow3d(iP,iP + 200 * nD,color="blue")
 
     ## calculate normal to refraction plane
     nR <- cross(iP - drop$O,ray$D)
@@ -146,7 +148,7 @@ reflect <-function(ray,t,drop)
     ## create new rotated ray
     rA <- thetaI + pi
     rm <- rotationMatrix(nR,rA)
-    rRay <- ray(O=iP,as.vector(nD %*% rm) ,color="yellow")
+    rRay <- ray(O=iP,as.vector(nD %*% rm) ,lambda=ray$lambda)
 
     return(rRay)
 

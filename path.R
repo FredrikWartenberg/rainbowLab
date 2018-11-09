@@ -23,12 +23,12 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
 
     ## normal vector [debug]
     nv <- normal.drop(drop,ip)
-    scg[['intersectionNormal']] <- arrow(ip,ip+nv*drop$R,s=1/4,color="red")
+    ##scg[['intersectionNormal']] <- arrow(ip,ip+nv*drop$R,s=1/4,color="red")
 
     ## refraction plane [debug]
     rpn <- cross(ip-drop$O,ip)
     rpn  <- rpn * c(1/norm(rpn,type="2"))
-    scg[['refractionPlane']] <- plane(rpn,d = - rpn %*% ip, alpha=0.1)
+    ##scg[['refractionPlane']] <- plane(rpn,d = - rpn %*% ip, alpha=0.1)
 
     ## refract into drop
     o2i <- refract(ray,t,drop,dir="o2i")
@@ -41,7 +41,6 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
     for(i in 2:(maxInteractions-1))
     {
         i2i <- reflect(ir,t,drop)
-        i2i$color = "black"
         t <- max(unlist(intersect(ir,drop)))
         name = paste("reflection",i-1,sep="")
         scg[[name]] <- getShape(i2i,t)
@@ -51,22 +50,30 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
 
     ## refract out of ray
     i2o <- refract(ir,t,drop,dir="i2o")
-    scg[['extingRay']] <- getShape(i2o,600)
+ ##   scg[['extingRay']] <- getShape(i2o,16000)
     ## plot normal vector
     ep <- point.ray(ir,t)
     nv2 <- normal.drop(drop,ep)
-    scg[['exitNormal']] <- arrow(ep,ep+nv2*drop$R,s=1/4,color="red")
 
-    return(list('ray' = NULL, 'scg'= scg))
+    return(list('ray' = i2o, 'scg'= scg))
 }
 
+## Catch rays on a surfce
+catch <- function(ray,screen)
+{
 
+}
 
-## junnk
-        ## ## now generate second ray, which is refracted into the drop
-        ## theta = abs(c(acos(ray$D %*% nv)))
-        ## if(theta > pi/2) {theta <- theta - pi/2}
-        ## rm <- rotationMatrix(rpn,theta*2)
-        ## r2 <- ray(O=ip,D=ray$D %*% rm,color="green")
-        ## render(r2,t=300)
-        ## scg[['rayIntoDrop']] <- getShape(r2,300)
+## Fan out rays from exit point
+fanOut <- function(ray,t)
+{
+    getShape(ray,t)
+}
+
+follow <- function(ray,drop,t=10000,nInt=3,id=0)
+{
+    s1 <- launch(ray,rDrop,maxInteractions=nInt)
+    name = paste('r',id,"fanOut",sep="")
+    s1$scg[[name]] <- fanOut(s1$ray,t)
+    s1$scg
+}

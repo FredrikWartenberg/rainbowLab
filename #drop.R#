@@ -44,3 +44,10 @@ normal.drop <-function(drop, point)
     return(as.vector(nv))
 
 }
+
+## A screen to catch rays and show them
+screen <- function(origin=c(0,0,0),normal=c(1,0,0),color="white",alpha=0.1)
+{
+
+}
+          

@@ -6,6 +6,12 @@ sceneGraph <- function()
     return(scg)
 }
 
+sceneGraphPrune <- function(scg,exclude)
+{
+
+}
+
+
 getShape <- function(object,t)
 {
     UseMethod("getShape",object)
@@ -13,8 +19,8 @@ getShape <- function(object,t)
 
 getShape.ray <- function(ray,t)
 {
-    arrow(point.ray(ray,t),
-          point.ray(ray,0),
+    arrow(point.ray(ray,0),
+          point.ray(ray,t),
           s=1/20,
           color=ray$color)
 }
