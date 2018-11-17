@@ -1,14 +1,3 @@
-## Nicer Sphere for later
-spheres3dS <- function(x0 = 0, y0 = 0, z0 = 0, r = 1, n = 101, ...){
-  f <- function(s,t){
-    cbind(   r * cos(t)*cos(s) + x0,
-             r *        sin(s) + y0,
-             r * sin(t)*cos(s) + z0)
-  }
-  persp3d(f, slim = c(-pi/2,pi/2), tlim = c(0, 2*pi), n = n, add = T, ...)
-}
-
-
 ## simple scene
 drop <- function(x=0,y=0,z=0,R=100,color="green",alpha="0.1",n=1.33,ri=refractiveIndex)
 {
@@ -20,11 +9,6 @@ drop <- function(x=0,y=0,z=0,R=100,color="green",alpha="0.1",n=1.33,ri=refractiv
                  'n'     =  n)
     class(drop) <- "drop"
     return(drop)
-}
-
-render.drop <- function(drop)
-{
-     spheres3d(drop$O,r=drop$R,color=drop$color,alpha=drop$alpha)
 }
 
 
@@ -44,3 +28,10 @@ normal.drop <-function(drop, point)
     return(as.vector(nv))
 
 }
+
+## A screen to catch rays and show them
+screen <- function(origin=c(0,0,0),normal=c(1,0,0),color="white",alpha=0.1)
+{
+
+}
+

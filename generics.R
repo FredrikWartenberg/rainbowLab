@@ -9,13 +9,4 @@
 ## }
 
 
-intersect <- function(shape,oShape)
-{
-    UseMethod("intersect",shape)
-}
-
-intersect.default <- function(shape,oShape)
-{
-    print(paste("Intersect called for object of class", class(shape)))
-}
 

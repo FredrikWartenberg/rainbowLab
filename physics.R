@@ -1,4 +1,12 @@
-physConstants <- list('c' = 3E8, 'k' = 1.38E-23, 'h' = 6.62E-34)
+constants <- function()
+{
+    list('c' = 3E8,
+         'k' = 1.38E-23,
+         'h' = 6.62E-34,
+         'visibleMin' = 390,  ## nm
+         'visibleMax' = 700   ## nm
+         )
+}
 
 ## units : 1 = 1mm
 accuracy <-function()
@@ -21,9 +29,7 @@ bbr <- function(f,T=6000,pc=physcialConstants)
 {
     2* pc$h * f^3 / ( pc$c^2 * (exp(pc$h*f/pc$k/T)-1))
 }
-
 bbx <- function(x){bbr(x,6000,physConstants)}
-
 ## Plot BBR
 ##curve(bbx,from=1,to=1E15)
 
@@ -37,7 +43,7 @@ bbx <- function(x){bbr(x,6000,physConstants)}
 ##     and
 ##     http://www.noah.org/wiki/Wavelength_to_RGB_in_Python
 
-lambda2rgb <-function (wavelength, alpha= 1, gamma=0.8)
+lambda2rgb <-function (wavelength, alpha= 1, gamma=1)
 {
     if (wavelength >= 380 & wavelength <= 440)
     {
@@ -107,11 +113,91 @@ refractiveIndexFnGenerator <- function(datafile,lambda)
     riTab <- fread(datafile)
 
     ## Generate function to return
-    function(lambda)
-    {
-        riTab[abs(Wavelength * 1000 - lambda) < 1]$"Real Index"
-    }
+    ##function(lambda)
+    ##{
+        ##riTab[abs(Wavelength * 1000 - lambda) < 1]$"Real Index"
+    ##}
+    approxfun(riTab$Wavelength*1000,riTab$"Real Index")
 }
 
 ## The actual function to avoid table lookup
 refractiveIndex <- refractiveIndexFnGenerator("Segelstein.txt")
+
+## Light spectra
+uniformSpectrum <- function(from = constants()$visibleMin,
+                            to =   constants()$visibleMax,
+                            steps = 100)
+{
+    round(
+        seq(from = constants()$visibleMin,
+        to = constants()$visibleMax,
+        length.out=steps))
+}
+
+
+## Light sources
+
+## Ray light will emit a group of identical rays
+## along <ray>
+## with different wavelengths
+## as defined by spectrum
+rayLight <- function(ray,spectrum=uniformSpectrum())
+{
+    makeRay <- function(lambda)
+    {
+        ray$lambda = lambda
+        ray$color  = lambda2rgb(lambda)
+        return(ray)
+    }
+
+    rays <- lapply(spectrum,FUN=makeRay)
+
+    rl <- list('rays' = rays, 'ray' = ray)
+    class(rl) <- "rayLight"
+
+    return(rl)
+}
+
+## Ray light will emit a group of identical rays
+## along an arc
+## with different wavelengths
+## as defined by spectrum
+arcLight <- function(focus     = c(0,0,0),
+                     arcPoint  = c(400,0,0),
+                     normalAxis = c(0,1,0),
+                     origin = c(0,0,0),
+                     toAngle = pi/3,
+                     fromAngle   = -pi/3,
+                     steps     = 10,
+                     spectrum=uniformSpectrum(),
+                     renderLength = 100)
+{
+
+    ## reverse rays
+    rr <- function(ray)
+    {
+        rr <- ray
+        rr$O = point.ray(ray,t=renderLength)
+        rr$D = - c(ray$D)
+        return(rr)
+    }
+
+    ## generate angles
+    angs <- seq(fromAngle,toAngle,length=steps)
+    lambda <- seq(390,700,length=steps) ## Fix
+
+    ## generate arcPoints
+    rays <- list()
+    n=0 ## Fix
+    for(a in angs)
+    {
+        n = n + 1
+        rm <- rotationMatrix(normalAxis,a)
+        r <- ray(O=c(0,0,0),D = -arcPoint %*% rm,lambda=lambda[[n]])
+        rays[[as.character(a)]] <- rr(r)
+    }
+
+    arcLightC <- list('rays' = rays)
+    class(arcLightC) <- "arcLight"
+    return(arcLightC)
+}

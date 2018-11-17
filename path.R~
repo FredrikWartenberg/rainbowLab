@@ -1,4 +1,0 @@
-launch <- function(ray,maxInteractions)
-{
-    res <- list()
-}

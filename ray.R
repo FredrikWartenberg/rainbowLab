@@ -2,7 +2,7 @@
 ray <-function(O=c(0,0,0),D=c(1,0,0),lambda=600,alpha="1")
 {
     ray <- list('O'     =  O,
-                'D'     = D,
+                'D'     = D/norm(D,type="2"),
                 'lambda' = lambda,
                  'color' = lambda2rgb(lambda),
                  'alpha' = alpha)
@@ -10,21 +10,14 @@ ray <-function(O=c(0,0,0),D=c(1,0,0),lambda=600,alpha="1")
     return(ray)
 }
 
+reverse.ray <- function(ray)
+{
+ ##   ray$O
+}
 point.ray <- function(ray,t)
 {
     as.vector(ray$O + c(t) * ray$D)
 }
-
-## render.ray <- function(ray,t)
-## {
-## ##    p0=ray$O
-## ##    p1 <- p0 + ray$D * c(t)
-##     ##arrow3d(p0,p1,s=1/20,color=ray$color)
-##     arrow3d(point.ray(ray,t),
-##             point.ray(ray,0),
-##             s=1/20,
-##             color=ray$color)
-## }
 
 intersect.ray <- function(ray,oShape)
 {
@@ -52,21 +45,10 @@ intersect.ray <- function(ray,oShape)
 
     return(res)
 }
-## Rotation around arbitrary axis r with angle theta
-## source: http://ksuweb.kennesaw.edu/~plaval/math4490/rotgen.pdf
-rotationMatrix <-function(r,theta)
-{
-    ## rotation matrix
-    m <- c(0,-r[3], r[2], r[3], 0, -r[1], -r[2], r[1],0)
-    MM <- matrix(m ,3,3,byrow=TRUE)
-    M <- r %*% t(r)
-    I <-  diag(3)
-    TM <- (1- cos(theta)) * M + cos(theta) * I + sin(theta) * MM
-    return(TM)
-}
 
 
-refract <-function(ray,t,drop,dir) ##,dir="o2i")
+## rafarct into or out of drop
+refract <-function(ray,t,drop,dir)
 {
     ## calculate interaction point
     iP <- point.ray(ray,t)
@@ -102,10 +84,10 @@ refract <-function(ray,t,drop,dir) ##,dir="o2i")
             thetaE <- asin(sinThetaE)
             ## create new rotated ray
             rA <- - thetaE
-            cat(paste("refraction i2o thetaI = " ,
-                      round(thetaI*180/pi),
-                      "thetaE =",
-                      round(thetaE*180/pi), "\n"))
+            ##cat(paste("refraction i2o thetaI = " ,
+            ##          round(thetaI*180/pi),
+            ##          "thetaE =",
+            ##          round(thetaE*180/pi), "\n"))
         } else
         {
             RA <- pi + thetaI
@@ -117,15 +99,16 @@ refract <-function(ray,t,drop,dir) ##,dir="o2i")
     }
 
     rm <- rotationMatrix(nR,rA)
-    ##    rRay <- ray(O=iP,nD %*% rm,color="grey")
     rRay <- ray(O=iP,as.vector((nD %*% rm)) ,lambda=ray$lambda)
 
     return(rRay)
 
 }
 
+## reflect inisde the drop
 reflect <-function(ray,t,drop)
 {
+
     ## calculate interaction point
     iP <- point.ray(ray,t)
 

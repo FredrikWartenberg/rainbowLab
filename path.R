@@ -1,3 +1,7 @@
+
+
+
+## lauch a ray and follow it through the drop
 launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
 {
 
@@ -21,9 +25,14 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
     scg[['rayToIntersection']] <- getShape(ray,t)
     ip <- point.ray(ray,t)
 
-    ## normal vector [debug]
-    nv <- normal.drop(drop,ip)
-    ##scg[['intersectionNormal']] <- arrow(ip,ip+nv*drop$R,s=1/4,color="red")
+    ## normal vector to drop
+    nvD <- normal.drop(drop,ip)
+    ##scg[['intersectionNormal']] <- arrow(ip,ip+nvD*drop$R,s=1/4,color="red")
+
+    ## coordinate system
+    CSYS <- coordSystem(-nvD,ray$D)
+    ## entry angle
+    angIn <- angle(CSYS,ray$D)
 
     ## refraction plane [debug]
     rpn <- cross(ip-drop$O,ip)
@@ -50,12 +59,16 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
 
     ## refract out of ray
     i2o <- refract(ir,t,drop,dir="i2o")
- ##   scg[['extingRay']] <- getShape(i2o,16000)
+    ## scg[['extingRay']] <- getShape(i2o,16000)
     ## plot normal vector
     ep <- point.ray(ir,t)
-    nv2 <- normal.drop(drop,ep)
+    nvD2 <- normal.drop(drop,ep)
 
-    return(list('ray' = i2o, 'scg'= scg))
+    ## exit angle
+     angOut <- angle(CSYS,i2o$D)
+
+    return(list('ray' = i2o, 'scg'= scg,
+                'angIn' = angIn, 'angOut' = angOut, 'ni' = ni))
 }
 
 ## Catch rays on a surfce
@@ -67,13 +80,48 @@ catch <- function(ray,screen)
 ## Fan out rays from exit point
 fanOut <- function(ray,t)
 {
-    getShape(ray,t)
+     getShape(ray,t)
 }
 
+## follow a ray through the drop and
+## let it continue for t units
+## will build a scene graph
 follow <- function(ray,drop,t=10000,nInt=3,id=0)
 {
-    s1 <- launch(ray,rDrop,maxInteractions=nInt)
+    s1 <- launch(ray,drop,maxInteractions=nInt)
     name = paste('r',id,"fanOut",sep="")
     s1$scg[[name]] <- fanOut(s1$ray,t)
-    s1$scg
+    s1
 }
+
+sendLight <-function(rays,universe,observer)
+{
+    scgO <- sceneGraph()
+    rayStats <- data.table(angIn=numeric(),
+                           angOut=numeric(),
+                           ni=numeric(),
+                           lambda=numeric(),
+                           color=numeric())
+    n = 0
+
+    for( o in universe)
+    {
+        scgI <- sceneGraph()
+        m = 0
+        for( r in rays)
+        {
+            m = m + 1
+            name = paste("r3",m,r$lambda,sep="")
+            I <- observer(r,o,t=200,nInt=3)
+            scgI[[name]] <- I$scg
+            dl <- list(I$angIn,I$angOut,I$ni,r$lambda,r$color)
+            rayStats <- rbind(rayStats,dl)
+        }
+        n = n+1
+        name = paste("uniObj",n,sep="")
+        scgO[[name]] <- scgI
+    }
+    return(list(scg=scgO,rayData=rayStats))
+
+}
+
