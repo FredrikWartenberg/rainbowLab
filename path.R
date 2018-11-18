@@ -65,7 +65,7 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
     nvD2 <- normal.drop(drop,ep)
 
     ## exit angle
-     angOut <- angle(CSYS,i2o$D)
+    angOut <- angle(CSYS,i2o$D)
 
     return(list('ray' = i2o, 'scg'= scg,
                 'angIn' = angIn, 'angOut' = angOut, 'ni' = ni))
@@ -80,7 +80,7 @@ catch <- function(ray,screen)
 ## Fan out rays from exit point
 fanOut <- function(ray,t)
 {
-     getShape(ray,t)
+    getShape(ray,t)
 }
 
 ## follow a ray through the drop and
@@ -103,20 +103,30 @@ sendLight <-function(rays,universe,observer)
                            lambda=numeric(),
                            color=numeric())
     n = 0
-
     for( o in universe)
     {
         scgI <- sceneGraph()
         m = 0
-        for( r in rays)
+        for( r in rays$chromaRays)
         {
+            breakL = FALSE
             m = m + 1
             name = paste("r3",m,r$lambda,sep="")
-            I <- observer(r,o,t=200,nInt=3)
-            scgI[[name]] <- I$scg
-            dl <- list(I$angIn,I$angOut,I$ni,r$lambda,r$color)
-            rayStats <- rbind(rayStats,dl)
-        }
+            tryCatch(
+            {
+                I <- observer(r,o,nInt=3) ## Fix
+                scgI[[name]] <- I$scg
+                dl <- list(I$angIn,I$angOut,I$ni,r$lambda,r$color)
+                rayStats <- rbind(rayStats,dl)
+
+            },
+            error=function(cond)
+            {
+                warning("observer error")
+                breakL = TRUE
+            }
+            )
+          }
         n = n+1
         name = paste("uniObj",n,sep="")
         scgO[[name]] <- scgI

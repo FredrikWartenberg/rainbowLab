@@ -126,7 +126,7 @@ refractiveIndex <- refractiveIndexFnGenerator("Segelstein.txt")
 ## Light spectra
 uniformSpectrum <- function(from = constants()$visibleMin,
                             to =   constants()$visibleMax,
-                            steps = 100)
+                            steps = 20) ## FIX
 {
     round(
         seq(from = constants()$visibleMin,
@@ -137,28 +137,51 @@ uniformSpectrum <- function(from = constants()$visibleMin,
 
 ## Light sources
 
-## Ray light will emit a group of identical rays
+## Ray light will emit a singlel ray
 ## along <ray>
 ## with different wavelengths
 ## as defined by spectrum
-rayLight <- function(ray,spectrum=uniformSpectrum())
+rayLight <- function(...)
 {
-    makeRay <- function(lambda)
+
+    rl <- list()
+    rl[['rayLightRay']]  <- ray(...)
+    class(rl) <- "rayLight"
+
+    return(rl)
+}
+
+## Applies spectrum to a list of rays
+## for every inbound ray one ray with
+## the same direction is generated for
+## all spectral components
+spectralize <- function(rays,spectrum=uniformSpectrum())
+{
+    makeRay <- function(lambda,ray)
     {
         ray$lambda = lambda
         ray$color  = lambda2rgb(lambda)
         return(ray)
     }
 
-    rays <- lapply(spectrum,FUN=makeRay)
+    chromaRays <- list()
+    n=0
+    for(r in rays)
+    {
+        for(l in spectrum)
+        {
+            n= n+1
+            name = paste("n",n,"l",l,sep="")
+            chromaRays[[name]] <- makeRay(l,r)
+        }
+    }
 
-    rl <- list('rays' = rays, 'ray' = ray)
-    class(rl) <- "rayLight"
-
+    rl <- list('chromaRays' = chromaRays, 'inRrays' = rays)
+    class(rl) <- "spectralRays"
     return(rl)
 }
 
-## Ray light will emit a group of identical rays
+## arc light will emit a group of identical rays
 ## along an arc
 ## with different wavelengths
 ## as defined by spectrum
@@ -169,7 +192,6 @@ arcLight <- function(focus     = c(0,0,0),
                      toAngle = pi/3,
                      fromAngle   = -pi/3,
                      steps     = 10,
-                     spectrum=uniformSpectrum(),
                      renderLength = 100)
 {
 
@@ -184,7 +206,6 @@ arcLight <- function(focus     = c(0,0,0),
 
     ## generate angles
     angs <- seq(fromAngle,toAngle,length=steps)
-    lambda <- seq(390,700,length=steps) ## Fix
 
     ## generate arcPoints
     rays <- list()
@@ -193,11 +214,28 @@ arcLight <- function(focus     = c(0,0,0),
     {
         n = n + 1
         rm <- rotationMatrix(normalAxis,a)
-        r <- ray(O=c(0,0,0),D = -arcPoint %*% rm,lambda=lambda[[n]])
+        r <- ray(O=c(0,0,0),D = -arcPoint %*% rm)
         rays[[as.character(a)]] <- rr(r)
     }
 
-    arcLightC <- list('rays' = rays)
-    class(arcLightC) <- "arcLight"
-    return(arcLightC)
+    class(rays) <- "arcLight"
+    return(rays)
+}
+
+## line light will emit a group of identical rays
+## along a line
+lineLight <- function(D       = c(1,0,0),
+                      origin  = c(-100,10,0),
+                      end     = c(-100,200,0),               ## FIX
+                      steps   = 10,
+                      renderLength = 100)
+{
+
+    ## generate ray light points
+    dVector <- (end - origin)/steps
+    rayOs <- lapply(0:steps,FUN = function(x){dVector*x})
+    rays <- lapply(rayOs,FUN = function(x){ray(O=x,D=D)})
+
+    class(rays) <- "lineLight"
+    return(rays)
 }

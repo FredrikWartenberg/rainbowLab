@@ -17,12 +17,6 @@ coordSystem <- function(x,v)
 {
     xHat <- x
     zHat <- cross(xHat,v)
-    if(norm(zHat,type="2") == 0)
-    {
-        zHat <- c(-x[2],x[1],0)
-          warning(paste("Coord Sys: x ", x, "and v", "are linearly dependent"))
-    }
-
     zHat <- zHat / norm(zHat,type="2")
     yHat <- cross(zHat,xHat)
     yHat <- yHat / norm(yHat,type="2")

@@ -101,7 +101,8 @@ render.drop <- function(drop)
 
 render.rayLight <- function(rayLight)
 {
-    ray <- rayLight$ray
+    ##ray <- rayLight$ray
+    ray <- rayLight[[1]]
 
     arrow3d(p0 = ray$O,
             p1 = point.ray(ray,t=100),
@@ -115,7 +116,17 @@ render.arcLight <- function(arcLight)
     {
         render(getShape(ray,t=100))
     }
-    lapply(arcLight$rays,FUN=getAndRender)
+    lapply(arcLight,FUN=getAndRender)
+}
+
+
+render.lineLight <- function(lineLight)
+{
+    getAndRender <- function(ray)
+    {
+        render(getShape(ray,t=100))
+    }
+    lapply(lineLight,FUN=getAndRender)
 }
 
 

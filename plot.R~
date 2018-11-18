@@ -1,0 +1,5 @@
+plot1 <- function(pd)
+{
+    ggplot(data=pd)
+    + geom_point(aes(x=lambda,y=(angOut-angIn)*180/pi)
+}
