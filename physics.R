@@ -134,6 +134,12 @@ uniformSpectrum <- function(from = constants()$visibleMin,
         length.out=steps))
 }
 
+## monchromatic spectrum
+monochromaticSpectrum <- function(lambda = 550)
+{
+    return(c(lambda))
+}
+
 
 ## Light sources
 
@@ -192,7 +198,8 @@ arcLight <- function(focus     = c(0,0,0),
                      toAngle = pi/3,
                      fromAngle   = -pi/3,
                      steps     = 10,
-                     renderLength = 100)
+                     renderLength = 100,
+                     debug=FALSE)
 {
 
     ## reverse rays
@@ -200,7 +207,7 @@ arcLight <- function(focus     = c(0,0,0),
     {
         rr <- ray
         rr$O = point.ray(ray,t=renderLength)
-        rr$D = - c(ray$D)
+        rr$D = c(ray$D)
         return(rr)
     }
 
@@ -215,6 +222,7 @@ arcLight <- function(focus     = c(0,0,0),
         n = n + 1
         rm <- rotationMatrix(normalAxis,a)
         r <- ray(O=c(0,0,0),D = -arcPoint %*% rm)
+        r$O <- r$O + focus
         rays[[as.character(a)]] <- rr(r)
     }
 
@@ -233,7 +241,7 @@ lineLight <- function(D       = c(1,0,0),
 
     ## generate ray light points
     dVector <- (end - origin)/steps
-    rayOs <- lapply(0:steps,FUN = function(x){dVector*x})
+    rayOs <- lapply(0:steps,FUN = function(x){origin+dVector*x})
     rays <- lapply(rayOs,FUN = function(x){ray(O=x,D=D)})
 
     class(rays) <- "lineLight"

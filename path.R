@@ -2,7 +2,7 @@
 
 
 ## lauch a ray and follow it through the drop
-launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
+launch <- function(ray,drop,parameters,maxInteractions=3)
 {
 
     ## scene graph
@@ -27,7 +27,8 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
 
     ## normal vector to drop
     nvD <- normal.drop(drop,ip)
-    ##scg[['intersectionNormal']] <- arrow(ip,ip+nvD*drop$R,s=1/4,color="red")
+    if(parameters$showNormals)
+        scg[['intersectionNormal']] <- arrow(ip,ip+nvD*drop$R,s=1/8,color="black")
 
     ## coordinate system
     CSYS <- coordSystem(-nvD,ray$D)
@@ -37,7 +38,8 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
     ## refraction plane [debug]
     rpn <- cross(ip-drop$O,ip)
     rpn  <- rpn * c(1/norm(rpn,type="2"))
-    ##scg[['refractionPlane']] <- plane(rpn,d = - rpn %*% ip, alpha=0.1)
+    if(parameters$showRefractionPlane)
+        scg[['refractionPlane']] <- plane(rpn,d = - rpn %*% ip, alpha=0.1)
 
     ## refract into drop
     o2i <- refract(ray,t,drop,dir="o2i")
@@ -53,6 +55,14 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
         t <- max(unlist(intersect(ir,drop)))
         name = paste("reflection",i-1,sep="")
         scg[[name]] <- getShape(i2i,t)
+        rp <- point.ray(ir,t)
+        nvR <- normal.drop(drop,rp)
+        if(parameters$showNormals)
+        {
+            name <- paste(name,"normal",sep="")
+            scg[[name]] <- arrow(rp,rp+nvR*drop$R,s=1/8,color="black")
+        }
+
         ir <- i2i
         ni = ni + 1
     }
@@ -63,6 +73,10 @@ launch <- function(ray,drop,maxInteractions=3,render=TRUE,debug=TRUE)
     ## plot normal vector
     ep <- point.ray(ir,t)
     nvD2 <- normal.drop(drop,ep)
+    if(parameters$showNormals)
+        scg[['exitNormal']] <- arrow(ep,ep+nvD2*drop$R,s=1/8,color="black")
+
+
 
     ## exit angle
     angOut <- angle(CSYS,i2o$D)
@@ -86,15 +100,15 @@ fanOut <- function(ray,t)
 ## follow a ray through the drop and
 ## let it continue for t units
 ## will build a scene graph
-follow <- function(ray,drop,t=10000,nInt=3,id=0)
+follow <- function(ray,drop,t=5000,nInt=3,id=0,parameters)
 {
-    s1 <- launch(ray,drop,maxInteractions=nInt)
+    s1 <- launch(ray,drop,maxInteractions=nInt,parameters)
     name = paste('r',id,"fanOut",sep="")
     s1$scg[[name]] <- fanOut(s1$ray,t)
     s1
 }
 
-sendLight <-function(rays,universe,observer)
+sendLight <-function(rays,universe,observer,parameters)
 {
     scgO <- sceneGraph()
     rayStats <- data.table(angIn=numeric(),
@@ -114,7 +128,7 @@ sendLight <-function(rays,universe,observer)
             name = paste("r3",m,r$lambda,sep="")
             tryCatch(
             {
-                I <- observer(r,o,nInt=3) ## Fix
+                I <- observer(r,o,t=parameters$outRayLength,nInt=parameters$nInteractions,id=0,parameters)
                 scgI[[name]] <- I$scg
                 dl <- list(I$angIn,I$angOut,I$ni,r$lambda,r$color)
                 rayStats <- rbind(rayStats,dl)

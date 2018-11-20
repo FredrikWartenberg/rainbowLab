@@ -74,6 +74,11 @@ refract <-function(ray,t,drop,dir)
         thetaE <- asin(sin(thetaI/n))
         ## calc rotation angle
         rA <- pi + thetaE
+        cat(paste("refraction o2i thetaI = " ,
+                      round(thetaI*180/pi),
+                      "thetaE =",
+                      round(thetaE*180/pi), "\n"))
+
     } else if(dir == "i2o")
     {
 
@@ -84,10 +89,10 @@ refract <-function(ray,t,drop,dir)
             thetaE <- asin(sinThetaE)
             ## create new rotated ray
             rA <- - thetaE
-            ##cat(paste("refraction i2o thetaI = " ,
-            ##          round(thetaI*180/pi),
-            ##          "thetaE =",
-            ##          round(thetaE*180/pi), "\n"))
+            cat(paste("refraction i2o thetaI = " ,
+                      round(thetaI*180/pi),
+                      "thetaE =",
+                      round(thetaE*180/pi), "\n"))
         } else
         {
             RA <- pi + thetaI
