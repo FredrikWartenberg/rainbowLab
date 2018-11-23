@@ -51,7 +51,12 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
     ir <- o2i
     for(i in 2:(maxInteractions-1))
     {
-        i2i <- reflect(ir,t,drop)
+        rr <- reflect(ir,t,drop)
+        i2i <- rr$ray
+        if(is.null(i2i))
+        {
+            return(NULL)
+        }
         t <- max(unlist(intersect(ir,drop)))
         name = paste("reflection",i-1,sep="")
         scg[[name]] <- getShape(i2i,t)
@@ -69,8 +74,7 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
 
     ## refract out of ray
     i2o <- refract(ir,t,drop,dir="i2o")
-    ## scg[['extingRay']] <- getShape(i2o,16000)
-    ## plot normal vector
+
     ep <- point.ray(ir,t)
     nvD2 <- normal.drop(drop,ep)
     if(parameters$showNormals)
@@ -82,7 +86,8 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
     angOut <- angle(CSYS,i2o$D)
 
     return(list('ray' = i2o, 'scg'= scg,
-                'angIn' = angIn, 'angOut' = angOut, 'ni' = ni))
+                'angIn' = angIn, 'angOut' = angOut, 'angR' = rr$thetaI,
+                'ni' = ni))
 }
 
 ## Catch rays on a surfce
@@ -103,8 +108,11 @@ fanOut <- function(ray,t)
 follow <- function(ray,drop,t=5000,nInt=3,id=0,parameters)
 {
     s1 <- launch(ray,drop,maxInteractions=nInt,parameters)
-    name = paste('r',id,"fanOut",sep="")
-    s1$scg[[name]] <- fanOut(s1$ray,t)
+    if(!is.null(s1))
+    {
+        name = paste('r',id,"fanOut",sep="")
+        s1$scg[[name]] <- fanOut(s1$ray,t)
+    }
     s1
 }
 
@@ -113,6 +121,7 @@ sendLight <-function(rays,universe,observer,parameters)
     scgO <- sceneGraph()
     rayStats <- data.table(angIn=numeric(),
                            angOut=numeric(),
+                           angRef=numeric(),
                            ni=numeric(),
                            lambda=numeric(),
                            color=numeric())
@@ -130,7 +139,7 @@ sendLight <-function(rays,universe,observer,parameters)
             {
                 I <- observer(r,o,t=parameters$outRayLength,nInt=parameters$nInteractions,id=0,parameters)
                 scgI[[name]] <- I$scg
-                dl <- list(I$angIn,I$angOut,I$ni,r$lambda,r$color)
+                dl <- list(I$angIn,I$angOut,I$angR,I$ni,r$lambda,r$color)
                 rayStats <- rbind(rayStats,dl)
 
             },
@@ -146,6 +155,5 @@ sendLight <-function(rays,universe,observer,parameters)
         scgO[[name]] <- scgI
     }
     return(list(scg=scgO,rayData=rayStats))
-
 }
 

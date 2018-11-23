@@ -31,7 +31,7 @@ fullScene[['univ']] <- univ ## add universe to scene
 parameters <- list()
 
 ## defaults
-parameters[['nInteractions']] <- 50
+parameters[['nInteractions']] <- 3
 parameters[['outRayLength']] <- 200
 parameters[['showNormals']] <- FALSE
 parameters[['showRefractionPlane']] <- FALSE

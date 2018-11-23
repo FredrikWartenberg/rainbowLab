@@ -71,7 +71,7 @@ refract <-function(ray,t,drop,dir)
     n <- drop$ri(ray$lambda)
     if(dir == "o2i")
     {
-        thetaE <- asin(sin(thetaI/n))
+        thetaE <- asin(sin(thetaI)/n)
         ## calc rotation angle
         rA <- pi + thetaE
         cat(paste("refraction o2i thetaI = " ,
@@ -81,9 +81,8 @@ refract <-function(ray,t,drop,dir)
 
     } else if(dir == "i2o")
     {
-
         n <- drop$ri(ray$lambda)
-        sinThetaE <- sin(thetaI*drop$n)
+        sinThetaE <- sin(thetaI)*n
         if(sinThetaE <= 1)
         {
             thetaE <- asin(sinThetaE)
@@ -126,19 +125,26 @@ reflect <-function(ray,t,drop)
 
     ## calculate theta, incident angle
     cv <- as.vector(ray$D) %*% as.vector(nD)
-    ##    thetaI = abs(c(acos(ray$D %*% nD)))
     thetaI = abs(c(acos(cv)))
     if(thetaI > pi/2)
     {
         thetaI <- pi - thetaI
     }
 
+    ## Brewster angle
+    if(abs(thetaI) < atan(drop$ri(ray$lambda)))
+    {
+        cat(paste("No Total reflection", round(thetaI)))
+        ##return(NULL)
+    }
+
+
     ## create new rotated ray
     rA <- thetaI + pi
     rm <- rotationMatrix(nR,rA)
     rRay <- ray(O=iP,as.vector(nD %*% rm) ,lambda=ray$lambda)
 
-    return(rRay)
+    return(list('ray' = rRay, 'thetaI' = thetaI))
 
 }
 

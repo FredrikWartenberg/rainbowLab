@@ -1,2 +1,2 @@
-angIn,angOut,ni,lambda,color,angInDeg,angOutDeg,angDiffDeg
-0.848062078981481,-2.09440393964326,50,400,#5B008801,49,-120,-169
+angIn,angOut,angRef,ni,lambda,color,angInDeg,angOutDeg,angRefDeg,angDiffDeg
+1.25323589750338,-1.27179336613083,0.780758796240586,3,400,#5B008801,72,-73,45,-145

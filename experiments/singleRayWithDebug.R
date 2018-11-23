@@ -1,45 +1,37 @@
-## Experiment 1
+## Experiment for single ray
+## with debug inof
 source("./scene.R")
 
-## details on observer
-## observer <- function(ray,drop)
-## {
-##     follow(ray,drop,nInt=parameters$nInteractions,t=parameters$outRayLength)
-## }
-
-##observer <- follow
-
+## Turn on ray nromals and planes
 parameters[['showNormals']] <- TRUE
 parameters[['showRefractionPlane']] <- TRUE
 
 
-lightRay <- rayLight(O=c(-400,300,0),D=c(1,0,0))         ## Define Light ray
-fullScene[['ll']]  <- lightRay                          ## Add to scene graph for plotting
-rayFollow <- lightRay %>% spectralize(spectrum=monochromaticSpectrum(400)) %>% sendLight(univ,follow,parameters)
+## Define a single light ray
+lightRay <- rayLight(O=c(-400,380,0),D=c(1,0,0))
+## Add ray to scene for rendering
+fullScene[['ll']]  <- lightRay
 
-## result to rendering
-fullScene[['lLF']] <- rayFollow$scg
+## apply spectrum to the ray
+## for each wavelength one ray is generated
+## parallel to the original ray
+## here we use a monochromatic
+## light source with lambda = 400 nm
+spectrumRays <- spectralize(lightRay,spectrum=monochromaticSpectrum(400))
 
-## result to datab
-pd <- prepareData(rayFollow$rayData)
+## now send the ligth through the universe (= light drop)
+tracedRays <- sendLight(spectrumRays,univ,follow,parameters)
+## ... the results are in the structure tracedRays:
+## tracedRayss$scg containts the scene graph for redering
+## tracedRays$rayData contains the table with the angles
+
+## add to scene for rendering
+fullScene[['tracedRays']] <- tracedRays$scg
+
+## result to data
+pd <- prepareData(tracedRays$rayData)
 fwrite(file="experiments/singleRayWithDebug.csv",pd)
 ## Plots
-
-plot2 <- function(pd)
-{
-    p <- (
-        ggplot(data=pd)
-        + geom_point(
-              aes(x=lambda,y=180 - (-angIn + angOut)*180/pi ,color = color),
-              size = 7
-          )
-        + labs(title="Deflection Angles over Incident Angle and Lambda")
-
-    )
-
-    print(p)
-
-}
 
 plot2(pd)
 

@@ -1,12 +1,13 @@
 prepareData <- function(pd)
 {
-    pd$angInDeg <- as.factor(round(pd$angIn*180/pi))
-    pd$angOutDeg <- as.factor(round(pd$angOut*180/pi))
-    pd$angDiffDeg <- as.factor(round((pd$angOut-pd$angIn)*180/pi))
+    pd$angInDeg <- round(pd$angIn*180/pi)
+    pd$angOutDeg <- round(pd$angOut*180/pi)
+    pd$angRefDeg <- round(pd$angRef*180/pi+180)
+    pd$angDiffDeg <- round((pd$angOut-pd$angIn)*180/pi)
     return(pd)
 }
 
-plot1 <- function(pd)
+plotAngOut <- function(pd)
 {
     p <- (
         ggplot(data=pd)
