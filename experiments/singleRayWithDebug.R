@@ -5,6 +5,7 @@ source("./scene.R")
 ## Turn on ray nromals and planes
 parameters[['showNormals']] <- TRUE
 parameters[['showRefractionPlane']] <- TRUE
+parameters[['nInteractions']] <- 4
 
 
 ## Define a single light ray

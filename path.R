@@ -84,10 +84,11 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
 
     ## exit angle
     angOut <- angle(CSYS,i2o$D)
+    angD <- acos(ray$D %*% i2o$D)
 
     return(list('ray' = i2o, 'scg'= scg,
                 'angIn' = angIn, 'angOut' = angOut, 'angR' = rr$thetaI,
-                'ni' = ni))
+                'angD' = angD, 'ni' = ni))
 }
 
 ## Catch rays on a surfce
@@ -122,6 +123,7 @@ sendLight <-function(rays,universe,observer,parameters)
     rayStats <- data.table(angIn=numeric(),
                            angOut=numeric(),
                            angRef=numeric(),
+                           angD=numeric(),
                            ni=numeric(),
                            lambda=numeric(),
                            color=numeric())
@@ -137,9 +139,11 @@ sendLight <-function(rays,universe,observer,parameters)
             name = paste("r3",m,r$lambda,sep="")
             tryCatch(
             {
-                I <- observer(r,o,t=parameters$outRayLength,nInt=parameters$nInteractions,id=0,parameters)
+                I <- observer(r,o,
+                              t=parameters$outRayLength,
+                              nInt=parameters$nInteractions,id=0,parameters)
                 scgI[[name]] <- I$scg
-                dl <- list(I$angIn,I$angOut,I$angR,I$ni,r$lambda,r$color)
+                dl <- list(I$angIn,I$angOut,I$angR,I$angD,I$ni,r$lambda,r$color)
                 rayStats <- rbind(rayStats,dl)
 
             },

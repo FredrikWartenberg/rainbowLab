@@ -43,7 +43,7 @@ bbx <- function(x){bbr(x,6000,physConstants)}
 ##     and
 ##     http://www.noah.org/wiki/Wavelength_to_RGB_in_Python
 
-lambda2rgb <-function (wavelength, alpha= 1, gamma=1)
+lambda2rgb <-function (wavelength, alpha= 0.5, gamma=1)
 {
     if (wavelength >= 380 & wavelength <= 440)
     {
@@ -94,7 +94,7 @@ lambda2rgb <-function (wavelength, alpha= 1, gamma=1)
     G = round(G * 255)
     B = round(B * 255)
 
-    return(rgb(R,G,B,alpha=alpha,maxColorValue = 255))
+    return(rgb(R,G,B,maxColorValue = 255))
 }
 
 

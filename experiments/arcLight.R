@@ -9,7 +9,7 @@ parameters[['nInteractions']] <- 3
 
 
 ## Define a single light ray
-lightRays <- arcLight(fromAngle=0,toAngle=pi*0.4,steps=50)
+lightRays <- arcLight(fromAngle=0,toAngle=pi/2,steps=40)
 ## Add ray to scene for rendering
 fullScene[['ll']]  <- lightRays
 
@@ -18,7 +18,10 @@ fullScene[['ll']]  <- lightRays
 ## parallel to the original ray
 ## here we use a monochromatic
 ## light source with lambda = 400 nm
-spectrumRays <- spectralize(lightRays,spectrum=monochromaticSpectrum(400))
+
+## define spectrum
+spec = seq(from=400,to=700,by=100)
+spectrumRays <- spectralize(lightRays,spectrum=monochromaticSpectrum(spec))
 
 
 ## now send the ligth through the universe (= light drop)
@@ -32,10 +35,9 @@ fullScene[['tracedRays']] <- tracedRays$scg
 
 ## result to data
 pd <- prepareData(tracedRays$rayData)
-fwrite(file="experiments/arcLight.csv",pd)
+
 ## Plots
 
-plot2(pd)
 
 ## render
 render(fullScene)
