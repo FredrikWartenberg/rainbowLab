@@ -1,11 +1,13 @@
 ## ray
 ray <-function(O=c(0,0,0),D=c(1,0,0),lambda=600,alpha="1")
 {
-    ray <- list('O'     =  O,
-                'D'     = D/norm(D,type="2"),
+    ray <- list('O'      =  O,
+                'D'      = D/norm(D,type="2"),
                 'lambda' = lambda,
-                 'color' = lambda2rgb(lambda),
-                 'alpha' = alpha)
+                'color'  = lambda2rgb(lambda),
+                'alpha'  = alpha,
+                's'      = 0.02
+                )
     class(ray) <- "ray"
     return(ray)
 }
@@ -74,10 +76,10 @@ refract <-function(ray,t,drop,dir)
         thetaE <- asin(sin(thetaI)/n)
         ## calc rotation angle
         rA <- pi + thetaE
-        cat(paste("refraction o2i thetaI = " ,
-                      round(thetaI*180/pi),
-                      "thetaE =",
-                      round(thetaE*180/pi), "\n"))
+        ##cat(paste("refraction o2i thetaI = " ,
+        ##              round(thetaI*180/pi),
+        ##              "thetaE =",
+        ##              round(thetaE*180/pi), "\n"))
 
     } else if(dir == "i2o")
     {
@@ -88,14 +90,14 @@ refract <-function(ray,t,drop,dir)
             thetaE <- asin(sinThetaE)
             ## create new rotated ray
             rA <- - thetaE
-            cat(paste("refraction i2o thetaI = " ,
-                      round(thetaI*180/pi),
-                      "thetaE =",
-                      round(thetaE*180/pi), "\n"))
+            ## cat(paste("refraction i2o thetaI = " ,
+            ##          round(thetaI*180/pi),
+            ##          "thetaE =",
+            ##          round(thetaE*180/pi), "\n"))
         } else
         {
             RA <- pi + thetaI
-            cat("Total reflection i2o")
+            ## cat("Total reflection i2o")
         }
     } else
     {
@@ -134,7 +136,7 @@ reflect <-function(ray,t,drop)
     ## Brewster angle
     if(abs(thetaI) < atan(drop$ri(ray$lambda)))
     {
-        cat(paste("No Total reflection", round(thetaI)))
+        ##cat(paste("No Total reflection", round(thetaI)))
         ##return(NULL)
     }
 

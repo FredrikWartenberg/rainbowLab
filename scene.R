@@ -12,31 +12,45 @@ source("path.R")
 source("physics.R")
 source("maths.R")
 source("plot.R")
+source("generateRainbows.R")
+
+## render scene
+renderScene<-function(scene)
+{
+    render(scene)
+}
+
 
 ## Define display window
-clear3d(type="all")
-open3d(windowRect = c(100,100,1000,1000))
-bg3d(color=c("#664455"))
+##clear3d(type="all")
+##open3d(windowRect = c(100,100,1000,1000))
+##bg3d(color=c("#664455"))
 
-## Build the static background scene
-fullScene <- sceneGraph()
-fullScene[['coordSys']] <- coordSys() # add coordinate system
+## ## Build the static background scene
+## fullScene <- sceneGraph()
+## fullScene[['coordSys']] <- coordSys() # add coordinate system
 
-## universe of interacting objects
-univ <- universe()
-univ[['d1']] <- drop(x=401,R=400, color="blue")
-fullScene[['univ']] <- univ ## add universe to scene
+## ## universe of interacting objects
+## univ <- universe()
+## univ[['d1']] <- drop(x=401,R=400, color="blue")
+## fullScene[['univ']] <- univ ## add universe to scene
 
 ## parameters and settings
-parameters <- list()
 
-## defaults
-parameters[['nInteractions']] <- 3
-parameters[['outRayLength']] <- 200
-parameters[['showNormals']] <- FALSE
-parameters[['showRefractionPlane']] <- FALSE
+defaultParameters <-function()
+{
+    parameters <- list()
 
+    ## defaults
+    parameters[['nInteractions']] <- 3
+    parameters[['outRayLength']] <- 200
+    parameters[['showNormals']] <- FALSE
+    parameters[['showRefractionPlane']] <- FALSE
 
+    return(parameters)
+}
+
+parameters <- defaultParameters()
 
 
 

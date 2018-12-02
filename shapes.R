@@ -20,6 +20,8 @@ sceneGraph <- function()
 
 render.sceneGraph <- function(sceneGraph)
 {
+    ##save <- par3d(skipRedraw=TRUE)
+    ##on.exit(par3d(save))
     sapply(X=sceneGraph,FUN = render)
 }
 
@@ -50,13 +52,15 @@ getShape <- function(object,t)
 ## rays
 getShape.ray <- function(ray,t)
 {
+
     arrow(point.ray(ray,0),
           point.ray(ray,t),
-          s=1/20,
+          s= ray$s,
           color=ray$color)
 }
 
 ## Functions related to shape rendering
+## if s = 0 arrow is rendered as a line
 arrow <-function(p0=c(0,0,0),p1=c(1,0,0),s=1/20,color="yellow")
 {
     arrow <- list('p0'     =  p0,
@@ -69,10 +73,22 @@ arrow <-function(p0=c(0,0,0),p1=c(1,0,0),s=1/20,color="yellow")
 
 render.arrow <- function(arrow)
 {
+##    if(arrow$s != 0)
+    if(TRUE)
+    {
     arrow3d(p0 = arrow$p0,
             p1 = arrow$p1,
-            s  = arrow$s,
+            s  = 1/20,##arrow$s,
+            type = "lines",
             color=arrow$color)
+    }else
+    {
+        cds <-  rbind(arrow$p0,arrow$p1)
+        lines3d(x=cds[,1],
+                y=cds[,2],
+                z=cds[,3],
+                color=arrow$color)
+    }
 }
 
 plane <-function(a=c(1,0,0),d=0,alpha=0.1,color="yellow")
@@ -155,11 +171,14 @@ intersect.default <- function(shape,oShape)
 ## Return scene graph for Coordinate system
 coordSys <- function(axLen = 500)
 {
-    scg <- sceneGraph()
-    scg[['x']] <- arrow(p0=c(-axLen,0,0),p1=c(axLen,0,0),s=1/20,color="red")
-    scg[['y']] <- arrow(p0=c(0,-axLen,0),p1=c(0,axLen,0),s=1/20,color="green")
-    scg[['z']] <- arrow(p0=c(0,0,-axLen),p1=c(0,0,axLen),s=1/20,color="black")
 
+    scg <- sceneGraph()
+    if(axLen != 0)
+    {
+        scg[['x']] <- arrow(p0=c(-axLen,0,0),p1=c(axLen,0,0),s=1/20,color="red")
+        scg[['y']] <- arrow(p0=c(0,-axLen,0),p1=c(0,axLen,0),s=1/20,color="green")
+        scg[['z']] <- arrow(p0=c(0,0,-axLen),p1=c(0,0,axLen),s=1/20,color="black")
+    }
     return(scg)
 }
 

@@ -9,7 +9,7 @@ parameters[['nInteractions']] <- 3
 
 
 ## Define a single light ray
-lightRays <- arcLight(fromAngle=0,toAngle=pi/2,steps=40)
+lightRays <- arcLight(fromAngle=0,toAngle=pi/2,steps=5)
 ## Add ray to scene for rendering
 fullScene[['ll']]  <- lightRays
 
@@ -40,4 +40,8 @@ pd <- prepareData(tracedRays$rayData)
 
 
 ## render
-render(fullScene)
+##po <- par3d()
+##par3d(skipRedraw=TRUE)
+renderScene(fullScene)
+##par3d(po)
+##render(drop(R=800))

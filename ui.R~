@@ -1,0 +1,22 @@
+## User interface DSL functions for rainbowLab
+
+## ######################################
+## Physics functions and data
+## ######################################
+
+## Print the physical constants
+printPhysicalConstants <- function()
+{
+    cat("Speed of Light        c [m/s]         =",constants()$c,"\n")
+    cat("Boltzmann's constant  k [J/K]         =",constants()$k,"\n")
+    cat("Planck's constant     h [Js]          =",constants()$h,"\n")
+    cat("Visible Light minimum wavelength [nm] =",constants()$visibleMin,"\n")
+    cat("Visible Light maximum wavelength [nm] =",constants()$visibleMax,"\n")
+
+
+## Plot Refractive Index
+plotRefractiveIndex <- function()
+{
+
+}
+

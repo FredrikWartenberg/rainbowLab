@@ -1,15 +1,3 @@
-prepareData <- function(pd)
-{
-    pd$angInDeg <- round(pd$angIn*180/pi,3)
-    pd$angOutDeg <- round(pd$angOut*180/pi,3)
-    pd$angRefDeg <- round(pd$angRef*180/pi+180,3)
-    pd$angD2Deg <- round(pd$angD*180/pi,3)
-    pd$angD2DegCorr <- 180-pd$angD2Deg
-    pd[ni > 4, angD2DegCorr := angD2Deg]
-    pd$rainbowNo <- as.factor(pd$ni - 2)
-    ##pd[angDiffDeg > 180,angDiffDeg:= angDiffDeg -180]
-    return(pd)
-}
 
 
 plotInVsOut <- function(pd)
@@ -45,16 +33,57 @@ plotInVsOut <- function(pd)
 plotPDF <- function(pd)
 {
     p <- (
-        ggplot(data=pd[angD2DegCorr <60&angD2DegCorr >35],
-               aes(angD2DegCorr))
-        + geom_histogram(bins=20)
-        + facet_grid(lambda~rainbowNo)
+        ggplot(data=pd[angD2DegCorr <60&angD2DegCorr >30],
+               aes(angD2DegCorr,
+          ##         color=as.factor(rainbowNo),
+                   fill =as.factor(lambda)
+                   ),size=2)
+        + geom_histogram(bins=200)
+        ##+ geom_freqpoly(bins=200)
+        ##+ facet_grid(lambda~.)
 
+        ## scales
+        + scale_fill_manual(values=unique(pd$color))
+        + coord_flip()
 
         ## Legends
         + labs(title = "Probability Distribution of Angular Difference",
-               subtitle = "vs. lambda and rainbow number",
-               x     = "Difference between incident and emitting angle [deg]")
+               subtitle = "vs. lambda",## and rainbow number",
+               x     = "Difference between incident and emitting angle [deg]",
+               fill = "wavelength")
+
+        ## Theme and design
+        + theme_minimal()
+
+    )
+    print(p)
+}
+
+
+plotPDFLines <- function(pd)
+{
+    p <- (
+        ggplot(data=pd[angD2DegCorr <60&angD2DegCorr >30],
+               aes(angD2DegCorr,
+                   ##linetype = as.factor(rainbowNo),
+                   ##size = as.factor(rainbowNo),
+                   color    = as.factor(lambda)
+                   ))
+        + geom_freqpoly(bins=200,size=2)
+        + facet_grid(rainbowNo~.)
+
+        ## scales
+        + scale_color_manual(values=unique(pd$color))
+        ##+ coord_flip()
+
+        ## Legends
+        + labs(title = "Probability Distribution of Angular Difference",
+               subtitle = "vs. lambda",## and rainbow number",
+               x     = "Difference between incident and emitting angle [deg]",
+               fill = "wavelength")
+
+        ## Theme and design
+        + theme_minimal()
 
     )
     print(p)

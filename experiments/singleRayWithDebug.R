@@ -3,9 +3,10 @@
 source("./scene.R")
 
 ## Turn on ray nromals and planes
-parameters[['showNormals']] <- TRUE
-parameters[['showRefractionPlane']] <- TRUE
-parameters[['nInteractions']] <- 4
+parameters[['showNormals']] <- FALSE ## TRUE
+parameters[['showRefractionPlane']] <- FALSE ##TRUE
+parameters[['nInteractions']] <- 3
+parameters[['outRayLength']] <- 200
 
 
 ## Define a single light ray
@@ -18,7 +19,7 @@ fullScene[['ll']]  <- lightRay
 ## parallel to the original ray
 ## here we use a monochromatic
 ## light source with lambda = 400 nm
-spectrumRays <- spectralize(lightRay,spectrum=monochromaticSpectrum(400))
+spectrumRays <- spectralize(lightRay,spectrum=monochromaticSpectrum(c(400,600)))
 
 ## now send the ligth through the universe (= light drop)
 tracedRays <- sendLight(spectrumRays,univ,follow,parameters)
@@ -29,12 +30,5 @@ tracedRays <- sendLight(spectrumRays,univ,follow,parameters)
 ## add to scene for rendering
 fullScene[['tracedRays']] <- tracedRays$scg
 
-## result to data
-pd <- prepareData(tracedRays$rayData)
-fwrite(file="experiments/singleRayWithDebug.csv",pd)
-## Plots
-
-plot2(pd)
-
 ## render
-render(fullScene)
+renderScene(fullScene)
