@@ -1,7 +1,7 @@
 ## User interface DSL functions for rainbowLab
 
 ## initialize
-source("scene.R")
+source("initialize.R")
 
 ## ######################################
 ## Physics functions and data
@@ -37,12 +37,11 @@ plotRefractiveIndex <- function()
                   paste("Refractive Index for Water for Visible Light",
                         "Source: Segelstein 1981",
                         "The Complex Refractive Index of Water",sep="\n"))
-            + scale_x_discrete(name="lambda [nm]")
+            ##+ scale_x_discrete(name="lambda [nm]")
             + geom_point(aes(x=lambda,
                              y=refractiveIndex,
                              color=color),
                          show.legend=FALSE)
-            + theme_minimal()
 
 
         )
@@ -106,6 +105,7 @@ traceOneRay <- function(nColors=10,nInteractions=3,showNormals=FALSE)
 
     ## add to scene for rendering
     fullScene[['tracedRays']] <- tracedRays$scg
+    print(prepareData(tracedRays$rayData))
 
     ## render
     renderScene(fullScene)
@@ -120,7 +120,7 @@ traceOneRay <- function(nColors=10,nInteractions=3,showNormals=FALSE)
 ## No 3D rendering
 
 
-generateRainbows <-function(rainbows=c(1,2),nColors = 5, angleSteps = 100)
+generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
 {
 
     ## universe containing the interacting drop
@@ -128,6 +128,7 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, angleSteps = 100)
     univ[['d1']] <- drop(x=400,R=400, color="blue")
 
     ## Generate the data
+    angleSteps=90/resolution
     pd <- generateDataMatrix(universe=univ,
                        angularSteps=angleSteps,
                        lambdaSteps = nColors,
@@ -136,9 +137,6 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, angleSteps = 100)
     ## Plots
     windows()
     plotPDF(pd)
-
-    windows()
-    plotInVsOut(pd)
 
     windows()
     plotPDFLines(pd)

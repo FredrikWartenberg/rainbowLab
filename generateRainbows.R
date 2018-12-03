@@ -1,15 +1,52 @@
 ## Function to generate rainbow data
 prepareData <- function(pd)
 {
-    pd$angInDeg <- round(pd$angIn*180/pi,3)
-    pd$angOutDeg <- round(pd$angOut*180/pi,3)
-    pd$angRefDeg <- round(pd$angRef*180/pi+180,3)
-    pd$angD2Deg <- round(pd$angD*180/pi,3)
-    pd$angD2DegCorr <- 180-pd$angD2Deg
-    pd[ni > 4, angD2DegCorr := angD2Deg]
+    pd$angInDeg  <- pd$angIn*180/pi
+    pd$angOutDeg <- pd$angOut*180/pi
+    pd$angRefDeg <- pd$angRef*180/pi+180
+    pd$angD2Deg  <- pd$angD*180/pi
+    pd$angDDeg   <- 180-pd$angD2Deg
+    ##pd[ni > 4, angDDeg := angD2Deg]
     pd$rainbowNo <- as.factor(pd$ni - 2)
-    ##pd[angDiffDeg > 180,angDiffDeg:= angDiffDeg -180]
+    ##pd$intensity <- 1
+    pd$angD2Deg <- NULL
     return(pd)
+}
+
+aggregateData <- function(dm)
+{
+    dm     <- dm[angDDeg<60]
+    dm$bin <- cut(dm$angDDeg,breaks=200)
+    dm[,intensity:=calculateIntensity(lambda,angIn,angOut,angRef,ni-2)]
+    dmAgg  <- dm[angDDeg<60,
+                 .(.N,I=sum(intensity),angD=mean(angDDeg)),
+                 by=.(rainbowNo,bin,lambda)]
+    return(dmAgg)
+}
+
+## apply schlicks approximation
+## for the ray propagation in the drop
+calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR)
+{
+    ## Prepare
+    n = refractiveIndex(lambda)
+    I = 1
+
+    ## Entry
+    I = I * (1-schlick(thetaI,n))
+    ## Internal Reflection
+    I = I * schlick(thetaR,n)^as.numeric(nR)
+    ## Exit
+    I = I * (1-schlick(thetaE,n))
+
+    return(I)
+}
+
+## Schlick's approximation for the reflection coefficient
+schlick <-function(theta,n=1.34)
+{
+    R_0  = ((n-1)/(n+1))^2
+    R    = R_0 + (1-R_0)*(1-abs(cos(theta)))^5
 }
 
 

@@ -1,3 +1,15 @@
+## ##########################################
+## Functions for rendering
+
+
+## render scene
+## only plain call to render due to buggy RGL
+renderScene<-function(scene)
+{
+    render(scene)
+}
+
+
 ## Generic render function
 render <- function(shape,t)
 {

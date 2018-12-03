@@ -1,4 +1,4 @@
-
+## Plots
 
 plotInVsOut <- function(pd)
 {
@@ -33,8 +33,8 @@ plotInVsOut <- function(pd)
 plotPDF <- function(pd)
 {
     p <- (
-        ggplot(data=pd[angD2DegCorr <60&angD2DegCorr >30],
-               aes(angD2DegCorr,
+        ggplot(data=pd,
+               aes(angDDeg,
           ##         color=as.factor(rainbowNo),
                    fill =as.factor(lambda)
                    ),size=2)
@@ -63,8 +63,9 @@ plotPDF <- function(pd)
 plotPDFLines <- function(pd)
 {
     p <- (
-        ggplot(data=pd[angD2DegCorr <60&angD2DegCorr >30],
-               aes(angD2DegCorr,
+        ##ggplot(data=pd[angDDeg <60&angDDeg >30],
+        ggplot(data=pd,
+               aes(angDDeg,
                    ##linetype = as.factor(rainbowNo),
                    ##size = as.factor(rainbowNo),
                    color    = as.factor(lambda)
