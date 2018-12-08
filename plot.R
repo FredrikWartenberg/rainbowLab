@@ -89,7 +89,7 @@ plotPDFLines <- function(pd)
 
 plotMaxima <- function(dm)
 {
-    mama <- maxima(pd)
+    mama <- maxima(dm)
     p <- (
         ggplot(data=mama) +
         geom_point(aes(x=lambda,y=angD,color=rainbowNo),size = 2) +
