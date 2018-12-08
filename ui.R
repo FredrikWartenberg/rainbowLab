@@ -95,31 +95,28 @@ traceOneRay <- function(nColors=10,nInteractions=3,showNormals=FALSE)
     ## apply spectrum to the ray
     ## for each wavelength one ray is generated
     ## parallel to the original ray
-    ## here we use a monochromatic
+    ## here we use a unform spectrum with nSteps
     ## light source with lambda = 400 nm
     spectrum = uniformSpectrum(steps=nColors)
     spectrumRays <- spectralize(lightRay,spectrum)
 
-    ## now send the ligth through the universe (= light drop)
+    ## now send the light through the universe (= light drop)
     tracedRays <- sendLight(spectrumRays,univ,follow,parameters)
 
     ## add to scene for rendering
     fullScene[['tracedRays']] <- tracedRays$scg
-    print(prepareData(tracedRays$rayData))
 
     ## render
     renderScene(fullScene)
 
-    ## Retrun Wavelengths
-    return(spectrum)
+    ## Retrun ray data
+    return(prepareData(tracedRays$rayData,simplify=TRUE))
 
 }
 
 
 ## Generate the rainbow distributions
 ## No 3D rendering
-
-
 generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
 {
 
@@ -136,7 +133,8 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
     ## Plots
     ## Plots
     windows()
-    plotPDF(pd)
+    ##plotPDF(pd)
+    plotMaxima(pd)
 
     windows()
     plotPDFLines(pd)

@@ -4,7 +4,6 @@ library(data.table)
 library(pracma)
 library(magrittr)
 library(listviewer)
-library(ggplot2)
 
 source("drop.R")
 source("ray.R")

@@ -1,5 +1,5 @@
 ## Function to generate rainbow data
-prepareData <- function(pd)
+prepareData <- function(pd,simplify=FALSE)
 {
     pd$angInDeg  <- pd$angIn*180/pi
     pd$angOutDeg <- pd$angOut*180/pi
@@ -10,15 +10,26 @@ prepareData <- function(pd)
     pd$rainbowNo <- as.factor(pd$ni - 2)
     ##pd$intensity <- 1
     pd$angD2Deg <- NULL
+
+    ## remove radian fields
+    if(simplify)
+    {
+        pd$angIn <- NULL
+        pd$angOut <- NULL
+        pd$angRef <- NULL
+        pd$angD <- NULL
+        pd$ni <- NULL
+    }
+
     return(pd)
 }
 
 aggregateData <- function(dm)
 {
-    dm     <- dm[angDDeg<60]
+    ##dm     <- dm[angDDeg<60]
     dm$bin <- cut(dm$angDDeg,breaks=200)
     dm[,intensity:=calculateIntensity(lambda,angIn,angOut,angRef,ni-2)]
-    dmAgg  <- dm[angDDeg<60,
+    dmAgg  <- dm[,
                  .(.N,I=sum(intensity),angD=mean(angDDeg)),
                  by=.(rainbowNo,bin,lambda)]
     return(dmAgg)
@@ -86,4 +97,22 @@ generateDataMatrix <- function(
     dataMatrix <- prepareData(dataMatrix)
     return(dataMatrix)
 }
+
+## find the maxima of the distributions for color x nRainbow
+## returns a table with maximum & angle for lambda x rainbowNo
+maxima <- function(dm)
+{
+    ## Aggregate and bin data
+    dm <- aggregateData(dm)
+    dm$binN <- as.numeric(dm$bin)
+    keycols=c("rainbowNo","lambda","N")
+    setkeyv(dm,keycols)
+
+    dmM <- dm[,.(max=max(N)),by=.(rainbowNo,lambda)]
+    keycols=c("rainbowNo","lambda","max")
+    setkeyv(dmM,keycols)
+
+    return(dm[dmM])
+}
+
 

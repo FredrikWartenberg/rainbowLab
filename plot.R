@@ -39,8 +39,6 @@ plotPDF <- function(pd)
                    fill =as.factor(lambda)
                    ),size=2)
         + geom_histogram(bins=200)
-        ##+ geom_freqpoly(bins=200)
-        ##+ facet_grid(lambda~.)
 
         ## scales
         + scale_fill_manual(values=unique(pd$color))
@@ -66,16 +64,15 @@ plotPDFLines <- function(pd)
         ##ggplot(data=pd[angDDeg <60&angDDeg >30],
         ggplot(data=pd,
                aes(angDDeg,
-                   ##linetype = as.factor(rainbowNo),
-                   ##size = as.factor(rainbowNo),
                    color    = as.factor(lambda)
                    ))
         + geom_freqpoly(bins=200,size=2)
         + facet_grid(rainbowNo~.)
+        ##+ coord_polar(start=-pi/2,direction=-1)
+        ##+ scale_x_continuous(limits = c(0,360))
 
         ## scales
         + scale_color_manual(values=unique(pd$color))
-        ##+ coord_flip()
 
         ## Legends
         + labs(title = "Probability Distribution of Angular Difference",
@@ -89,3 +86,21 @@ plotPDFLines <- function(pd)
     )
     print(p)
 }
+
+plotMaxima <- function(dm)
+{
+    mama <- maxima(pd)
+    p <- (
+        ggplot(data=mama) +
+        geom_point(aes(x=lambda,y=angD,color=rainbowNo),size = 2) +
+        scale_y_continuous(breaks=seq(from=30,to=180,length = 16)) +
+        labs(title = "Angle of Maximum Ray Density",
+             x = "lambda [nm]",
+             y = "Angle [deg]",
+             color = "Rainbow number")
+
+    )
+
+    print(p)
+}
+

@@ -1,0 +1,10 @@
+## login
+
+## Server
+cd /volume1/BackupIoT/git/
+mkdir rainbowLab.git
+git init --bare --shared rainbowLab.git
+
+## Client push
+git remote set-url origin ssh://admin@192.168.1.202:224/volume1/BackupIoT/git/rainbowLab.git
+git push origin master 
