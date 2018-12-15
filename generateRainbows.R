@@ -27,6 +27,7 @@ prepareData <- function(pd,simplify=FALSE)
 aggregateData <- function(dm)
 {
     ##dm     <- dm[angDDeg<60]
+    browser()
     dm$bin <- cut(dm$angDDeg,breaks=200)
     dm[,intensity:=calculateIntensity(lambda,angIn,angOut,angRef,ni-2)]
     dmAgg  <- dm[,
@@ -37,18 +38,26 @@ aggregateData <- function(dm)
 
 ## apply schlicks approximation
 ## for the ray propagation in the drop
-calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR)
+calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="none")
 {
     ## Prepare
     n = refractiveIndex(lambda)
     I = 1
 
-    ## Entry
-    I = I * (1-schlick(thetaI,n))
-    ## Internal Reflection
-    I = I * schlick(thetaR,n)^as.numeric(nR)
-    ## Exit
-    I = I * (1-schlick(thetaE,n))
+    if(method == "schlick")
+    {
+
+        ## Entry
+        I = I * (1-schlick(thetaI,n))
+        ## Internal Reflection
+        I = I * schlick(thetaR,n)^as.numeric(nR)
+        ## Exit
+        I = I * (1-schlick(thetaE,n))
+
+    } else if (method == "fresnel")
+    {
+##        I = fresnel(theta
+    }
 
     return(I)
 }

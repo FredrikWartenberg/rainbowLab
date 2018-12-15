@@ -1,3 +1,22 @@
+## Themes
+theme_curves <- function(){
+
+    theme_classic()+
+    theme(
+        title = element_text(size = 15),
+        ##axis.ticks = element_blank(),
+        ##axis.text.y = element_blank(),
+        strip.text   = element_text(size = 15),
+        axis.text.x  = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        axis.line.x  = element_line(color="grey80"),
+        axis.line.y  = element_line(color="grey80")
+        ##axis.line.y = element_blank(),
+        ##legend.position="none",
+    )
+}
+
+
 ## Plots
 
 plotInVsOut <- function(pd)
@@ -103,4 +122,5 @@ plotMaxima <- function(dm)
 
     print(p)
 }
+
 

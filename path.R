@@ -86,9 +86,16 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
     angOut <- angle(CSYS,i2o$D)
     angD <- acos(ray$D %*% i2o$D)
 
-    return(list('ray' = i2o, 'scg'= scg,
-                'angIn' = angIn, 'angOut' = angOut, 'angR' = rr$thetaI,
-                'angD' = angD, 'ni' = ni))
+    return(list('ray'    = i2o,
+                'scg'    = scg,
+                'angIn'  = angIn,
+                'rIn'    = 0,
+                'angOut' = angOut,
+                'rOut'   = 0,
+                'angR'   = rr$thetaI,
+                'rRef'   = 1,
+                'angD'   = angD,
+                'ni'     = ni))
 }
 
 ## Catch rays on a surfce
@@ -120,13 +127,16 @@ follow <- function(ray,drop,t=5000,nInt=3,id=0,parameters)
 sendLight <-function(rays,universe,observer,parameters)
 {
     scgO <- sceneGraph()
-    rayStats <- data.table(angIn=numeric(),
-                           angOut=numeric(),
-                           angRef=numeric(),
-                           angD=numeric(),
-                           ni=numeric(),
-                           lambda=numeric(),
-                           color=numeric())
+    rayStats <- data.table(angIn  = numeric(),
+                           rIn    = numeric(),
+                           angOut = numeric(),
+                           rOut   = numeric(),
+                           angRef = numeric(),
+                           rRef   = numeric(),
+                           angD   = numeric(),
+                           ni     = numeric(),
+                           lambda = numeric(),
+                           color  = numeric())
     n = 0
     for( o in universe)
     {
@@ -143,7 +153,7 @@ sendLight <-function(rays,universe,observer,parameters)
                               t=parameters$outRayLength,
                               nInt=parameters$nInteractions,id=0,parameters)
                 scgI[[name]] <- I$scg
-                dl <- list(I$angIn,I$angOut,I$angR,I$angD,I$ni,r$lambda,r$color)
+                dl <- list(I$angIn,I$rIn,I$angOut,I$rOut,I$angR,I$rRef,I$angD,I$ni,r$lambda,r$color)
                 rayStats <- rbind(rayStats,dl)
 
             },
