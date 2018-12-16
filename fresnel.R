@@ -22,8 +22,8 @@ fresnel <- function(theta,n,dir)
     den = nI * cosI + nE * cosE
 
     ## R's
-    R_s = (nI * cosI - nE * cosE / den)^2
-    R_p = (nI * cosE - nE * cosI / den)^2
+    R_s = ((nI * cosI - nE * cosE) / den)^2
+    R_p = ((nI * cosE - nE * cosI) / den)^2
     R   = 0.5 * (R_s + R_p)
 
     return(list('R' = R, 'R_p' = R_p, 'R_s' = R_s, 'T' = 1 - R , 'T_s' = 1 - R_s, 'T_p' = 1 - R_p))
