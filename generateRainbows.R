@@ -24,28 +24,30 @@ prepareData <- function(pd,simplify=FALSE)
     return(pd)
 }
 
-aggregateData <- function(dm)
+## Takes ray data from the dataMatrix
+aggregateData <- function(dm,intensityMethod = "fresnel")
 {
-    ##dm     <- dm[angDDeg<60]
-    browser()
     dm$bin <- cut(dm$angDDeg,breaks=200)
-    dm[,intensity:=calculateIntensity(lambda,angIn,angOut,angRef,ni-2)]
+    dm[,intensity:=
+            calculateIntensity(lambda,angIn,angOut,angRef,ni-2,intensityMethod)
+       ]
     dmAgg  <- dm[,
                  .(.N,I=sum(intensity),angD=mean(angDDeg)),
                  by=.(rainbowNo,bin,lambda)]
+    class(dmAgg) <- c(class(dmAgg), "spectrumData")
+
     return(dmAgg)
 }
 
 ## apply schlicks approximation
 ## for the ray propagation in the drop
-calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="none")
+calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 {
     ## Prepare
     n = refractiveIndex(lambda)
     I = 1
 
-    if(method == "schlick")
-    {
+    if(method == "schlick"){
 
         ## Entry
         I = I * (1-schlick(thetaI,n))
@@ -54,27 +56,43 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="none")
         ## Exit
         I = I * (1-schlick(thetaE,n))
 
-    } else if (method == "fresnel")
-    {
-##        I = fresnel(theta
+    } else if (method == "fresnel"){
+
+        ## we use _m; average over s and p polarisation
+        ## Entry, consider transmission
+        I = I * fresnel(thetaI,n,"o2i")$T_m
+        ## Internal Reflection, consider reflection
+        I = I * fresnel(thetaR,n,"i2o")$R_m^as.numeric(nR)
+        ## Exit, consider transmision
+        I = I * fresnel(thetaE,n,"i2o")$T_m
+    } else if (method == "identity"){
+        ## do nothing
+    } else {
+        stop(paste("Unkown intesity method:", method))
     }
 
     return(I)
 }
 
-## Schlick's approximation for the reflection coefficient
-schlick <-function(theta,n=1.34)
-{
-    R_0  = ((n-1)/(n+1))^2
-    R    = R_0 + (1-R_0)*(1-abs(cos(theta)))^5
-}
-
-
+##' Generates the table with spectral and angular distribution of the different rainbows.
+##'
+##' Central simulation function
+##' @title
+##' @param universe The universe (typically one drop)
+##' @param angularSteps Angular resolution for simulation steps
+##' @param lambdaSteps Stepsize for lambda between visibleMin and visibleMax
+##' @param rainbows Rainbows to generate, e.g. c(1,2,4) for first, second and fourth rainbow
+##' @param intensity How to calculate the intensity in the spectrum:
+##' count: just count the number of rays
+##' fresnel: apply fresenel formulas to transmission and reflectio
+##' @return a data.table with the spectral and angular intesities for each rainbow
+##' @author
 generateDataMatrix <- function(
                                universe,
                                angularSteps = 10000,
                                lambdaSteps = 1,
-                               rainbows = c(1,2))
+                               rainbows = c(1,2),
+                               intensity = "count")
 {
     parameters <- defaultParameters()
 
@@ -104,7 +122,8 @@ generateDataMatrix <- function(
 
     ## prepare for plotting
     dataMatrix <- prepareData(dataMatrix)
-    return(dataMatrix)
+
+    invisible(dataMatrix)
 }
 
 ## find the maxima of the distributions for color x nRainbow

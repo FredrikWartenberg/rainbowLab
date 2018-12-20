@@ -1,0 +1,8 @@
+source("./physics.R")
+source("./fresenel.R")
+
+testFunction <- fresnelSpecific(n=1.33,dir="o2i")
+
+if(testFunction$R != 0.0591256){
+    stop("Fresenel Failure")
+}

@@ -1,3 +1,4 @@
+## Used physical constants
 constants <- function()
 {
     list('c' = 3E8,
@@ -25,7 +26,7 @@ lambda2f <- function(lambda,pc=physConstants)
 
 ## Plack's formula for distribution of
 ## Black Body Radiation
-bbr <- function(f,T=6000,pc=physcialConstants)
+blackBodyRadiation <- function(f,T=6000,pc=physcialConstants)
 {
     2* pc$h * f^3 / ( pc$c^2 * (exp(pc$h*f/pc$k/T)-1))
 }
@@ -187,6 +188,82 @@ spectralize <- function(rays,spectrum=uniformSpectrum())
     return(rl)
 }
 
+##
+## R: Reflection coefficient
+## T: Transmission coefficient (1-R)
+## s: perpendicular polarizatio
+## p: parallel polarization
+## dir: direction
+##      o2i from air into medium
+##      i2o from medium into air
+##      i2i from medium to medium (same as i2o)
+## R is the average of R_s and R_p for use when polarisation
+## is not considered
+## access like res$R_s etc.
+##
+##' calculate R, R_s and R_p by means of fresnel equations for air/medium interface
+##'
+##' Source: https://de.wikipedia.org/wiki/Fresnelsche_Formeln
+##' @title Fresnel Reflection and Transmission coefficients
+##' @param theta incident angle
+##' @param n refractive index
+##' @param dir o2i :outside (air) to inside (medium) or i2o :inside (medium) to outside (air)
+##' @return a list with reflection (R) and transmission (T) coefficients for s (perpendicular) and p (parallel) polarization and their mean
+##' syntax {T,R}_{s,p,m}
+##' @author
+fresnel <- function(theta,n,dir){
+
+    ## Incident angle
+    cosI <- cos(theta)
+
+    ## calculate cos of other angle
+    if(dir == "o2i"){
+        cosE <- sqrt(1 - (sin(theta)/n)^2)
+        nI = 1
+        nE = n
+    } else if(dir == "i2o" | dir == "i2i"){
+        cosE <- sqrt(1- (sin(theta)*n)^2)
+        nI = n
+        nE = 1
+    }
+
+    ## R's
+    R_s = ((nI * cosI - nE * cosE) / (nI * cosI + nE * cosE))^2
+    R_p = ((nI * cosE - nE * cosI) / (nI * cosE + nE * cosI))^2
+    R_m   = 0.5 * (R_s + R_p)
+
+    return(list('R_m' = R_m, 'R_p' = R_p, 'R_s' = R_s,
+                'T_m' = 1 - R_m , 'T_s' = 1 - R_s, 'T_p' = 1 - R_p))
+}
+
+## Returns a fresnel function for a specific comination of
+## n and direction
+fresnelSpecific <- function(n,dir){
+    function(theta){fresnel(theta,n=n,dir=dir)
+    }
+}
+
+
+##
+##' Schlick's approximation for the reflection coefficient
+##'
+##' Has proved not to work
+##' @title Schlick approximation for reflection
+##' @param theta incident angle (radian)
+##' @param n refractive index of inner medium
+##' @return reflection cofficient
+##' @author
+schlick <-function(theta,n=1.34)
+{
+    R_0  = ((n-1)/(n+1))^2
+    R    = R_0 + (1-R_0)*(1-abs(cos(theta)))^5
+}
+
+
+## ##################################################
+## Physcial Light sources
+
+
 ## arc light will emit a group of identical rays
 ## along an arc
 ## with different wavelengths
@@ -247,3 +324,5 @@ lineLight <- function(D       = c(1,0,0),
     class(rays) <- "lineLight"
     return(rays)
 }
+
+
