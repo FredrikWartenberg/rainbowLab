@@ -129,7 +129,18 @@ plotMaxima <- function(dm)
 
 ## #############################################
 ## Plot physics functions
-## plot fresnel for reflection on a water surface
+##
+
+##' plot fresnel for reflection on a water surface
+##'
+##' Plots reflection and transmission for s and p polarisations
+##' assumes air water interface and n air = 1
+##' @title Plot Fresenel Coefficients (tit)
+##' @param n refractive index
+##' @param by angular steps (deg) for plotting
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
 plotFresnel <- function(n=1.33,by=0.1)
 {
     ## Generate plot data
@@ -181,7 +192,7 @@ plotFresnel <- function(n=1.33,by=0.1)
         + scale_x_continuous(breaks = seq(0,90,by=10))
 
         ## Annotation
-        + labs(title = paste("Fresenel Reflection and Transmission coeffcients for n =",
+        + labs(title = paste("Fresnel Reflection and Transmission coeffcients for n =",
                              n, " (i) and air (o; n = 1)"),
                x = "Theta [deg]",
                y = "Coefficient")

@@ -1,7 +1,7 @@
 ## User interface DSL functions for rainbowLab
 
 ## initialize
-source("R/initialize.R")
+## FIXsource("R/initialize.R")
 
 ## ######################################
 ## High Level UI functions

@@ -1,4 +1,14 @@
-## ray
+##' Generate one ray
+##'
+##' A ray represents a light ray. Its properties are
+##' origin (O), direction (D), lambda and alpha.
+##' @title ray
+##' @param O Origin (cartesian coordinates)
+##' @param D Direction (vector, will be normalised to 1
+##' @param lambda wavelength [nm]
+##' @param alpha alpha (for plotting)
+##' @return ray object
+##' @author Fredrik Wartenberg
 ray <-function(O=c(0,0,0),D=c(1,0,0),lambda=600,alpha="1")
 {
     ray <- list('O'      =  O,

@@ -1,9 +1,18 @@
 ## ##########################################
 ## Functions for rendering
 
-
-## render scene
-## only plain call to render due to buggy RGL
+##' Render scene
+##'
+##' Scene is a the sceneGraph representation of the scene.
+##' render will tranverse the scene graph and call the
+##' render functions of the various objects.
+##' It will do so by calling the generic render function.
+##' rgl is a buggy library, so expect surprises
+##' @title Render Scene
+##' @param scene scenGraph
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
 renderScene<-function(scene)
 {
     render(scene)
@@ -11,11 +20,21 @@ renderScene<-function(scene)
 
 
 ## Generic render function
+##' Generic render function
+##'
+##' Will dispatch to object's render functions
+##' @title Dispatch funtction for rendering objects
+##' @param shape object to render
+##' @param t unclaer
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
 render <- function(shape,t)
 {
     UseMethod("render",shape)
 }
 
+##' @export
 render.default <- function(shape)
 {
     print(paste("Render called for object of class", class(shape)))
@@ -30,17 +49,10 @@ sceneGraph <- function()
     return(scg)
 }
 
+##' @export
 render.sceneGraph <- function(sceneGraph)
 {
-    ##save <- par3d(skipRedraw=TRUE)
-    ##on.exit(par3d(save))
     sapply(X=sceneGraph,FUN = render)
-}
-
-
-sceneGraphPrune <- function(scg,exclude)
-{
-
 }
 
 universe <- function()
@@ -50,6 +62,7 @@ universe <- function()
     return(uni)
 }
 
+##' @export
 render.universe <-function(uni)
 {
     sapply(X=uni,FUN = render)
@@ -83,6 +96,7 @@ arrow <-function(p0=c(0,0,0),p1=c(1,0,0),s=1/20,color="yellow")
     return(arrow)
 }
 
+##' @export
 render.arrow <- function(arrow)
 {
 ##    if(arrow$s != 0)
@@ -113,6 +127,7 @@ plane <-function(a=c(1,0,0),d=0,alpha=0.1,color="yellow")
     return(plane)
 }
 
+##' @export
 render.plane <- function(plane)
 {
     planes3d(a=plane$a,
@@ -121,12 +136,13 @@ render.plane <- function(plane)
              color = plane$color)
 }
 
-
+##' @export
 render.drop <- function(drop)
 {
      spheres3d(drop$O,r=drop$R,color=drop$color,alpha=drop$alpha)
 }
 
+##' @export
 render.rayLight <- function(rayLight)
 {
     ##ray <- rayLight$ray
@@ -138,6 +154,7 @@ render.rayLight <- function(rayLight)
             color="white")
 }
 
+##' @export
 render.arcLight <- function(arcLight)
 {
     getAndRender <- function(ray)
@@ -148,6 +165,7 @@ render.arcLight <- function(arcLight)
 }
 
 
+##' @export
 render.lineLight <- function(lineLight)
 {
     getAndRender <- function(ray)
@@ -194,9 +212,50 @@ coordSys <- function(axLen = 500)
     return(scg)
 }
 
-## generate a line of drops
-dropLine <- function(O=c(0,-500,0),D=c(0,1,0),R=400,d=100,n=5)
+
+##' The water drop through which rays are traced
+##'
+##' Contains both physical and graphical parameters for rendering.
+##' @title water drop
+##' @param x x-coordinate of centre
+##' @param y y-coordinate of centre
+##' @param z z-coordinate of centre
+##' @param R radius
+##' @param color rendering color
+##' @param alpha rendring alpha
+##' @param n refractive index (default)
+##' @param ri function returning refractive index
+##' @return drop objecr
+##' @author Fredrik Wartenberg
+##' @export
+drop <- function(x=0,y=0,z=0,R=100,color="green",alpha="0.1",n=1.33,ri=refractiveIndex)
 {
-    scg <- sceneGraph()
-    D <- D/norm(D,type="2") # normalize direction
+    drop <- list('O'     =  c(x,y,z),
+                 'R'     = R,
+                 'color' = color,
+                 'alpha' = alpha,
+                 'ri' = ri,
+                 'n'     =  n)
+    class(drop) <- "drop"
+    return(drop)
 }
+
+
+## calculate the normal vector on
+## the surface of the drop
+normal.drop <-function(drop, point)
+{
+
+    nv <- (point-drop$O)
+    if(abs(norm(nv,type = "2") - drop$R)> accuracy())
+    {
+        warning("Point for normal calculatrion not on surface of drop")
+    }
+    sf <- 1/norm(nv,type = "2")
+    nv <-  nv * c(sf)
+
+    return(as.vector(nv))
+
+}
+
+

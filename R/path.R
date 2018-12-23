@@ -98,12 +98,6 @@ launch <- function(ray,drop,parameters,maxInteractions=3)
                 'ni'     = ni))
 }
 
-## Catch rays on a surfce
-catch <- function(ray,screen)
-{
-
-}
-
 ## Fan out rays from exit point
 fanOut <- function(ray,t)
 {
