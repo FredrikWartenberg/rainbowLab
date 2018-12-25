@@ -109,6 +109,8 @@ plotPDFLines <- function(pd)
     print(p)
 }
 
+
+
 plotMaxima <- function(dm)
 {
     mama <- maxima(dm)

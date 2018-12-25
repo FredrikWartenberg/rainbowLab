@@ -1,55 +1,77 @@
-## Function to generate rainbow data
-prepareData <- function(pd,simplify=FALSE)
+
+##' Add fields in degrees and intensity to raytracing data
+##'
+##' Intensity is calculated according to intensity method. Currently
+##' supported methods are fresnel (default) and identity
+##' @title Prepare rayTracingData for analysis and plotting
+##' @param rayTracingData data.table with raytracing data, one row per ray
+##' @param simplify will remove radian fields if TRUE
+##' @param intensityMethod Method to calculate intensity, see details
+##' @return data.table with added fields, now called rayData
+##' @author Fredrik Wartenberg
+prepareData <- function(rayTracingData,simplify=FALSE,intensityMethod="fresnel")
 {
-    pd$angInDeg  <- pd$angIn*180/pi
-    pd$angOutDeg <- pd$angOut*180/pi
-    pd$angRefDeg <- pd$angRef*180/pi+180
-    pd$angD2Deg  <- pd$angD*180/pi
-    pd$angDDeg   <- 180-pd$angD2Deg
-    ##pd[ni > 4, angDDeg := angD2Deg]
-    pd$rainbowNo <- as.factor(pd$ni - 2)
-    ##pd$intensity <- 1
-    pd$angD2Deg <- NULL
+    ## Add fields in degrees
+    rayTracingData$angInDeg  <- rayTracingData$angIn*180/pi
+    rayTracingData$angOutDeg <- rayTracingData$angOut*180/pi
+    rayTracingData$angRefDeg <- rayTracingData$angRef*180/pi+180
+    rayTracingData$angD2Deg  <- rayTracingData$angD*180/pi
+    rayTracingData$angDDeg   <- 180-rayTracingData$angD2Deg
+    rayTracingData$angD2Deg  <- NULL
+
+    ## Rainbow Number
+    rayTracingData$rainbowNo <- as.factor(rayTracingData$ni - 2)
+
+    ## Add intesity per ray
+    rayTracingData[,intensity:=
+            calculateIntensity(lambda,angIn,angOut,angRef,ni-2,intensityMethod)
+            ]
+
+    ## add Max intensity per group for 3db cutoff
+    ## rayTracingData[,maxI := max(intensity),by=.(rainbowNo,lambda)]
 
     ## remove radian fields
     if(simplify)
     {
-        pd$angIn <- NULL
-        pd$angOut <- NULL
-        pd$angRef <- NULL
-        pd$angD <- NULL
-        pd$ni <- NULL
+        rayTracingData$angIn <- NULL
+        rayTracingData$angOut <- NULL
+        rayTracingData$angRef <- NULL
+        rayTracingData$angD <- NULL
+        rayTracingData$ni <- NULL
     }
 
-    return(pd)
+    ## return transformed table, now actually rayData
+    attr(rayTracingData,"intensityMethod") <- intensityMethod
+    return(rayTracingData)
 }
 
-## Takes ray data from the dataMatrix
-aggregateData <- function(dm,intensityMethod = "fresnel")
-{
-    dm$bin <- cut(dm$angDDeg,breaks=200)
- # FIX#   browser()
-    dm[,intensity:=
-            calculateIntensity(lambda,angIn,angOut,angRef,ni-2,intensityMethod)
-       ]
-    dmAgg  <- dm[,
-                 .(.N,I=sum(intensity),angD=mean(angDDeg)),
-                 by=.(rainbowNo,bin,lambda)]
-    class(dmAgg) <- c(class(dmAgg), "spectrumData")
 
-    return(dmAgg)
-}
 
 ## apply schlicks approximation
 ## for the ray propagation in the drop
+##' Calculate change in intensity of ray propagating through the water drop
+##'
+##' The identity method set attentuation to 1 (no attenuation)
+##' The fresnel method calculates attenuation based on reflection
+##' and transmission coefficients.
+##' @title Intensity change
+##' @param lambda Wavelength nm
+##' @param thetaI Incident angle of ray into drop
+##' @param thetaE excident angle of ray from drop
+##' @param thetaR reflection angle inside drop
+##' @param nR number of reflections
+##' @param method intensity calculation method (see details=
+##' @return attenuation value in linear domain (0..1)
+##' @author Fredrik Wartenberg
 calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 {
     ## Prepare
     n = refractiveIndex(lambda)
-    I = 1
+
 
     if(method == "schlick"){
 
+        stop(paste("Intesity method no longer supported:", method))
         ## Entry
         I = I * (1-schlick(thetaI,n))
         ## Internal Reflection
@@ -61,19 +83,76 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 
         ## we use _m; average over s and p polarisation
         ## Entry, consider transmission
-        I = I * fresnel(thetaI,n,"o2i")$T_m
+        I = unlist(mapply(FUN = fresnel,theta = thetaI,n=n,dir = "o2i")["T_m",])
         ## Internal Reflection, consider reflection
-        I = I * fresnel(thetaR,n,"i2o")$R_m^as.numeric(nR)
+        IR <- unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")["R_m",])
+        I = I * (IR ^ nR)
         ## Exit, consider transmision
-        I = I * fresnel(thetaE,n,"i2o")$T_m
+        I = I * unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")["T_m",])
     } else if (method == "identity"){
         ## do nothing
+        I = 1
     } else {
         stop(paste("Unkown intesity method:", method))
     }
 
     return(I)
 }
+
+##' Aggregate rayData to pdf
+##'
+##' Aggregates rayData over a range of angles. The range is implicitly
+##' set by the number of bins. Cutoff removes values smaller than
+##' a portion of max vaule
+##' @title aggregate rayData
+##' @param rayData data.table with rayData
+##' @param nBreaks number of bins to aggregate into
+##' @param cutoff exclude rows which are smaller than max*cutoff (0 = no cutoff)
+##' @return data.table with pdf of angular difference (angDDeg)
+##' @author Fredrik Wartenberg
+aggregateData <- function(rayData,nBreaks=200,cutoff=0.5)
+{
+    rayData$bin <- cut(rayData$angDDeg,breaks=nBreaks)
+
+    pdfData  <- rayData[!is.na(intensity),
+                 .(.N,I=sum(intensity),angD=mean(angDDeg)),
+                 by=.(rainbowNo,bin,lambda)]
+
+    ## cutoff
+    pdfData[,maxI := max(I),by=.(rainbowNo,lambda)]
+    pdfData[I < maxI*cutoff, I := 0]
+
+    ## inherit intesity method
+    attr(pdfData,"intensityMethod") <- attr(rayData,"intensityMethod")
+
+    return(pdfData)
+}
+
+
+##' Maxima (Peaks) of pdf
+##'
+##' find the maxima of the distributions for color x nRainbow
+##' returns a table with maximum & angle for lambda x rainbowNo
+##' Fresnel intensity method is biased towards too small angels.
+##' @title Find angels of mximum intensity
+##' @param pdfData data.table with pdf (= aggregated ray data)
+##' @return table with maximum & angle for lambda x rainbowNo
+##' @author Fredrik Wartenberg
+##' @export
+maxima <- function(pdfData)
+{
+
+    keycols=c("rainbowNo","lambda","I")
+    setkeyv(pdfData,keycols)
+    pdfDataMax <- pdfData[,.(max=max(I)),by=.(rainbowNo,lambda)]
+
+    keycols=c("rainbowNo","lambda","max")
+    setkeyv(pdfDataMax,keycols)
+
+    return(pdfData[pdfDataMax])
+}
+
+
 
 ##' Generates the table with spectral and angular distribution of the different rainbows.
 ##'
@@ -117,31 +196,10 @@ generateDataMatrix <- function(
         tracedRays <- sendLight(spectrumRays,universe,follow,parameters)
 
         ## retrieve and append data
-        pd <- prepareData(tracedRays$rayData)
-        dataMatrix <- rbind(dataMatrix,pd)
+        rayData <- prepareData(tracedRays$rayData)
+        dataMatrix <- rbind(dataMatrix,rayData)
     }
 
-    ## prepare for plotting
-    dataMatrix <- prepareData(dataMatrix)
-
+    ## return data silently (now rayData
     invisible(dataMatrix)
 }
-
-## find the maxima of the distributions for color x nRainbow
-## returns a table with maximum & angle for lambda x rainbowNo
-maxima <- function(dm)
-{
-    ## Aggregate and bin data
-    dm <- aggregateData(dm)
-    dm$binN <- as.numeric(dm$bin)
-    keycols=c("rainbowNo","lambda","N")
-    setkeyv(dm,keycols)
-
-    dmM <- dm[,.(max=max(N)),by=.(rainbowNo,lambda)]
-    keycols=c("rainbowNo","lambda","max")
-    setkeyv(dmM,keycols)
-
-    return(dm[dmM])
-}
-
-

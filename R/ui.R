@@ -2,7 +2,8 @@
 
 ## initialize
 ## FIXsource("R/initialize.R")
-
+## cf. http://www.atoptics.co.uk/rainbows
+## for better simulation
 ## ######################################
 ## High Level UI functions
 ## ######################################
@@ -160,6 +161,7 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
     windows()
     plotPDFLines(rayData)
 
-    ## Return data
+    ## Return data silently
     invisible(rayData)
 }
+>
