@@ -149,19 +149,21 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
     univ[['d1']] <- drop(x=400,R=400, color="blue")
 
     ## Generate the data
-    angleSteps=90/resolution
     rayData <- generateDataMatrix(universe=univ,
-                                  angularSteps=angleSteps,
-                                  lambdaSteps = nColors,
+                                  resolution = resolution,
+                                  nColors = nColors,
                                   rainbows=rainbows)
     ## Plots
     windows()
-    plotMaxima(rayData)
+    plotPDF(aggregateData(rayData))
 
     windows()
-    plotPDFLines(rayData)
+    plotIntensities(aggregateData(rayData))
+
+    windows()
+    plotMaxima(aggregateData(rayData))
 
     ## Return data silently
     invisible(rayData)
 }
->
+

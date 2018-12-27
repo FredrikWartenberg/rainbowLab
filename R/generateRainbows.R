@@ -9,6 +9,7 @@
 ##' @param intensityMethod Method to calculate intensity, see details
 ##' @return data.table with added fields, now called rayData
 ##' @author Fredrik Wartenberg
+##' @export
 prepareData <- function(rayTracingData,simplify=FALSE,intensityMethod="fresnel")
 {
     ## Add fields in degrees
@@ -26,9 +27,6 @@ prepareData <- function(rayTracingData,simplify=FALSE,intensityMethod="fresnel")
     rayTracingData[,intensity:=
             calculateIntensity(lambda,angIn,angOut,angRef,ni-2,intensityMethod)
             ]
-
-    ## add Max intensity per group for 3db cutoff
-    ## rayTracingData[,maxI := max(intensity),by=.(rainbowNo,lambda)]
 
     ## remove radian fields
     if(simplify)
@@ -106,21 +104,42 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 ##' a portion of max vaule
 ##' @title aggregate rayData
 ##' @param rayData data.table with rayData
+##' @param aggregateRainbows aggregate over all rainbows (and set rainbowNo = 0). Default = FALSE
+##' @param aggregateLambda aggregate over all lambdas (and set lambda = 0). Default = FALSE
 ##' @param nBreaks number of bins to aggregate into
 ##' @param cutoff exclude rows which are smaller than max*cutoff (0 = no cutoff)
 ##' @return data.table with pdf of angular difference (angDDeg)
 ##' @author Fredrik Wartenberg
-aggregateData <- function(rayData,nBreaks=200,cutoff=0.5)
+aggregateData <- function(rayData,aggregateRainbows = FALSE, aggregateLambda = FALSE, nBreaks=200)
 {
-    rayData$bin <- cut(rayData$angDDeg,breaks=nBreaks)
 
+    ## Bin (in degrees!)
+    ##rayData$bin <- cut(rayData$angDDeg,breaks=nBreaks)
+    binV <- seq(from=0,to=180,length=nBreaks)
+    rayData$angD <- binV[findInterval(rayData$angDDeg,binV)] + 180/nBreaks*0.5
+
+
+    ## Aggregate
     pdfData  <- rayData[!is.na(intensity),
-                 .(.N,I=sum(intensity),angD=mean(angDDeg)),
-                 by=.(rainbowNo,bin,lambda)]
+                 .(.N,I=sum(intensity),angDMean=mean(angDDeg)),
+                 by=.(rainbowNo,lambda,angD)]
 
-    ## cutoff
+    if(aggregateLambda){
+
+        pdfData <- pdfData[,.(I=sum(I),lambda=0),by=.(rainbowNo,angD)]
+    }
+
+    if(aggregateRainbows){
+        pdfData <- pdfData[,.(I=sum(I),rainbowNo = 0),by=.(lambda,angD)]
+    }
+
+
+    ## Normalize (no 3db cutoff!)
+    sumI <- sum(pdfData$I)
+    pdfData$I <- pdfData$I/sumI
+
+    ## Add maxI per category
     pdfData[,maxI := max(I),by=.(rainbowNo,lambda)]
-    pdfData[I < maxI*cutoff, I := 0]
 
     ## inherit intesity method
     attr(pdfData,"intensityMethod") <- attr(rayData,"intensityMethod")
@@ -149,10 +168,37 @@ maxima <- function(pdfData)
     keycols=c("rainbowNo","lambda","max")
     setkeyv(pdfDataMax,keycols)
 
-    return(pdfData[pdfDataMax])
+    intensities <- pdfData[pdfDataMax]
+    attr(intensities,"intensityMethod") <- attr(pdfData,"intensityMethod")
+    return(intensities)
 }
 
+##' Calculate relative intensities of rainbows
+##'
+##' See plotIntensities for details
+##' @title Calculate intensities
+##' @param pdfData PDF data (Aggregated raydata)
+##' @return data.table with intensities and 3dB width for rainbows
+##' @author Fredrik Wartenberg
+##' @export
+intensities <- function(pdfData)
+{
+     iMeth <- attr(pdfData,"intensityMethod")
 
+    if(iMeth != "fresnel"){
+        warning(paste("Calculating intensities requires intensity method fresnel (data here uses)", iMeth))
+    }
+
+    ## get maximum as 100 % reference
+    maxMaxI <- max(pdfData[I>maxI/2,
+                           .(absIntensity=sum(I)),
+                           by=.(rainbowNo)]$absIntensity)
+    ## calculate intesity data
+    its <- pdfData[I>maxI/2,
+                   .(absIntesity=sum(I),relIntensity=sum(I)/maxMaxI*100,width3db=(max(angD)-min(angD))),
+                   by=.(rainbowNo)]
+    return(its)
+}
 
 ##' Generates the table with spectral and angular distribution of the different rainbows.
 ##'
@@ -169,19 +215,19 @@ maxima <- function(pdfData)
 ##' @author Fredrik Wartenberg
 generateDataMatrix <- function(
                                universe,
-                               angularSteps = 10000,
-                               lambdaSteps = 1,
-                               rainbows = c(1,2),
-                               intensity = "count")
+                               resolution = 10000,
+                               nColors = 1,
+                               rainbows = c(1,2))
 {
     parameters <- defaultParameters()
 
     ## Define light rays with angular distribution
-    lightRays <- arcLight(fromAngle=0,toAngle=pi/2,steps=angularSteps)
+    lightRays <- arcLight(fromAngle=0,toAngle=pi/2,
+                          steps = 90/resolution)
 
     ## Apply spectrum
     spectrumRays <- spectralize(lightRays,
-                                spectrum=uniformSpectrum(steps=lambdaSteps))
+                                spectrum=uniformSpectrum(steps=nColors))
 
     ## Generate data for rainbows
     dataMatrix <- NULL
@@ -196,10 +242,15 @@ generateDataMatrix <- function(
         tracedRays <- sendLight(spectrumRays,universe,follow,parameters)
 
         ## retrieve and append data
-        rayData <- prepareData(tracedRays$rayData)
-        dataMatrix <- rbind(dataMatrix,rayData)
+        ##rayData <- prepareData(tracedRays$rayData)
+        dataMatrix <- rbind(dataMatrix,tracedRays$rayData)
     }
 
+    ## add attributes
+    rayData <- prepareData(dataMatrix)
+    attr(rayData,"resolution") <- resolution
+    attr(rayData,"nColors") <- nColors
+
     ## return data silently (now rayData
-    invisible(dataMatrix)
+    invisible(rayData)
 }

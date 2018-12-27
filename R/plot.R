@@ -1,31 +1,40 @@
 ## Themes
-theme_curves <- function(){
+##' Theme for rainbow Lab
+##'
+##' Based on theme_classic
+##' @title Rainbow Lab Plot theme
+##' @return theme
+##' @author Fredrik Wartenberg
+theme_rainbowLab <- function(){
 
     theme_classic()+
     theme(
         title = element_text(size = 15),
-        ##axis.ticks = element_blank(),
-        ##axis.text.y = element_blank(),
-        strip.text   = element_text(size = 15),
-        axis.text.x  = element_text(size = 15),
-        axis.title.y = element_text(size = 15),
+        strip.text   = element_text(size = 13),
+        axis.text.x  = element_text(size = 12),
+        axis.text.y  = element_text(size = 12),
+        axis.title.y = element_text(size = 13),
+        axis.title.x = element_text(size = 13),
         axis.line.x  = element_line(color="grey80"),
         axis.line.y  = element_line(color="grey80")
-        ##axis.line.y = element_blank(),
-        ##legend.position="none",
     )
 }
 
 
-## Plots based on rainbow data
-## generate data by running
-## pd <- generateRainbows(...)
-
-plotInVsOut <- function(rbd)
+##' Plot angular difference vs incident angle
+##'
+##' Mostly a plot to visualize the data. Use plotPDF to
+##' view rainbow angles and distributions.
+##' @title Plot Incident vs. angular difference
+##' @param rayData
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
+plotInVsOut <- function(rayData)
 {
 
     p <- (
-        ggplot(data=rbd)
+        ggplot(data=rayData)
         + geom_point(aes(
               x     =angInDeg,
               y     = angDDeg,
@@ -34,10 +43,11 @@ plotInVsOut <- function(rbd)
               size=4)
 
         ## Scales
-        + scale_color_manual(values=unique(rbd$color))
+        + scale_color_manual(values=unique(rayData$color))
         + scale_x_continuous(breaks = seq(from=0,to=180,by=10))
         + scale_y_continuous(breaks = seq(from=0,to=180,by=10))
         + scale_shape_manual(values = c(15,16,17,18))
+
         ## Legends
         + labs(title = "Difference between inicdent and emitting angle",
                subtitle = "vs. lambda and rainbow number",
@@ -47,54 +57,38 @@ plotInVsOut <- function(rbd)
                y     = "Difference between incident and emitting angle [deg]")
 
         ## Theme and design
-        + theme_minimal()
+        + theme_rainbowLab()
     )
     print(p)
 }
 
-plotPDF <- function(pd)
+##' Plot PDF of intensities
+##'
+##' This function is deprecated use plotPDF instead
+##' @title Plot PDF from rayData
+##' @param rayData unaggregated data
+##' @param merge join all rainbow
+##' @return nothing
+##' @author Fredrik Wartenberg
+plotPDFLines <- function(rayData,merge=TRUE)
 {
+
+    if(merge){
+        rayData$rainbowNo <- as.integer(1)
+    }
+
     p <- (
-        ggplot(data=pd,
+        ggplot(data=rayData,
                aes(angDDeg,
-          ##         color=as.factor(rainbowNo),
-                   fill =as.factor(lambda)
-                   ),size=2)
-        + geom_histogram(bins=200)
-
-        ## scales
-        + scale_fill_manual(values=unique(pd$color))
-        + coord_flip()
-
-        ## Legends
-        + labs(title = "Probability Distribution of Angular Difference",
-               subtitle = "vs. lambda",## and rainbow number",
-               x     = "Difference between incident and emitting angle [deg]",
-               fill = "wavelength")
-
-        ## Theme and design
-        + theme_minimal()
-
-    )
-    print(p)
-}
-
-
-plotPDFLines <- function(pd)
-{
-    p <- (
-        ##ggplot(data=pd[angDDeg <60&angDDeg >30],
-        ggplot(data=pd,
-               aes(angDDeg,
-                   color    = as.factor(lambda)
+                   color = as.factor(lambda)
                    ))
-        + geom_freqpoly(bins=200,size=2)
+        + geom_freqpoly(bins=200,size=1)
         + facet_grid(rainbowNo~.)
         ##+ coord_polar(start=-pi/2,direction=-1)
         ##+ scale_x_continuous(limits = c(0,360))
 
         ## scales
-        + scale_color_manual(values=unique(pd$color))
+        + scale_color_manual(values=unique(rayData$color))
 
         ## Legends
         + labs(title = "Probability Distribution of Angular Difference",
@@ -103,41 +97,93 @@ plotPDFLines <- function(pd)
                fill = "wavelength")
 
         ## Theme and design
-        + theme_minimal()
+        + theme_rainbowLab()
+
+    )
+    print(p)
+}
+##' Plot probablity density function for angular difference
+##'
+##' Plots the aggregated data in pdfData, no calculation is done here.
+##' For different aggregation options see aggregateData
+##' @title Plot angular difference PDF
+##' @param pdfData
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
+plotPDF <- function(pdfData)
+{
+    rbcols <- sapply(X=unique(pdfData$lambda),FUN=lambda2rgb)
+    p <- (
+        ggplot(data=pdfData, aes(x=angD, y = I, color = as.factor(lambda)))
+        + geom_line(size = 2)
+        + facet_grid(rainbowNo ~ . ,labeller = label_both)
+
+        ## scales
+        ##+ scale_color_manual(values=unique(rayData$color))
+        + scale_color_manual(values= rbcols)
+
+        ## Legends
+        + labs(title    = "Probability Distribution of Angular Difference vs. lambda and rainbow number",
+               subtitle = paste("Intensity Method =", attr(pdfData,"intensityMethod")),
+               x        = "Difference between incident and emitting angle [deg]",
+               y        = "probability [0..1]",
+               color    = "Lambda [nm]")
+
+        ## Theme and design
+        + theme_rainbowLab()
 
     )
     print(p)
 }
 
 
-
-plotMaxima <- function(dm)
+##' Plot Angles of Maximum Intensities for Rainbow x Lambda
+##'
+##' Use function maxima to calculate data points. See
+##' maxima function for details.
+##' @title Plot Angles of Maximum Intensities
+##' @param pdfData
+##' @return data.table with maxima
+##' @author Fredrik Wartenberg
+plotMaxima <- function(pdfData)
 {
-    mama <- maxima(dm)
+    ## Calculate data points
+    mama <- maxima(pdfData)
+
+    ## Plot
     p <- (
-        ggplot(data=mama) +
-        geom_point(aes(x=lambda,y=angD,color=rainbowNo),size = 2) +
-        scale_y_continuous(breaks=seq(from=30,to=180,length = 16)) +
-        labs(title = "Angle of Maximum Ray Density",
+
+        ## Define Plot
+        ggplot(data=mama)
+        + geom_point(aes(x=lambda,y=angD,color=rainbowNo),size = 2)
+        + geom_line(aes(x=lambda,y=angD,color=rainbowNo),size = 1)
+
+        ## scales
+        + scale_y_continuous(breaks=seq(from=30,to=180,length = 16))
+
+        ## Anntotation
+        + labs(title = "Angle of Maximum Ray Density",
+             subtitle = paste("intensity method:",
+                              attr(pdfData,"intensityMethod")),
              x = "lambda [nm]",
              y = "Angle [deg]",
-             color = "Rainbow number")
+             color = "Rainbow Number")
+
+        ## Theme and design
+        + theme_rainbowLab()
 
     )
-
     print(p)
+
+    invisible(mama)
 }
 
-
-## #############################################
-## Plot physics functions
-##
-
-##' plot fresnel for reflection on a water surface
+##' plot fresnel coefficients for water/air interface
 ##'
-##' Plots reflection and transmission for s and p polarisations
+##' Plots reflection and transmission coeffcients for s and p polarisations
 ##' assumes air water interface and n air = 1
-##' @title Plot Fresenel Coefficients (tit)
+##' @title Plot Fresenel Coefficients
 ##' @param n refractive index
 ##' @param by angular steps (deg) for plotting
 ##' @return nothing
@@ -178,7 +224,6 @@ plotFresnel <- function(n=1.33,by=0.1)
     ## join
     fData <- rbind(fR,fT)
 
-
     ## join & plot
     p <- (
 
@@ -186,11 +231,11 @@ plotFresnel <- function(n=1.33,by=0.1)
         ggplot(data=fData)
 
         ## Plot
-        + geom_line(aes(x=theta*180/pi,y=coeff,color=polarisation,linetype=kind),size = 1)
+        + geom_line(aes(x=theta*180/pi,y=coeff,color=polarisation,linetype=kind),size = 2)
         + facet_grid(.~dir)
 
         ## Scales (
-        + scale_colour_manual(values = c("red", "blue", "green"))
+        + scale_colour_manual(values = c("#a1d99b", "#1f78b4", "green"))
         + scale_x_continuous(breaks = seq(0,90,by=10))
 
         ## Annotation
@@ -200,7 +245,7 @@ plotFresnel <- function(n=1.33,by=0.1)
                y = "Coefficient")
 
         ## Design
-        + theme_curves()
+        + theme_rainbowLab()
 
         ##+ scale_color_grey()
     )
@@ -209,4 +254,49 @@ plotFresnel <- function(n=1.33,by=0.1)
     return(fData)
 }
 
+##' Plot relative intensities and width of rainbows
+##'
+##' Uses intensities calculated by fresnel method.
+##' This is an unverified method. It is
+##' difficult to find actual data on the intensities.
+##' Stated relative intensities between first and second
+##' rainbow range from 50% to 10%.
+##' 3dB width is calculated as the difference between the
+##' maximum and the minimum angle where the pdf aggregated
+##' over all lambda is above 50% of the maxiumum value.
+##' (see https://en.wikipedia.org/wiki/Beamwidth)
+##' @title Plot relative rainbow intensities and 3dB width.
+##' @param pdfData
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
+plotIntensities <- function(pdfData)
+{
+    ## Calculate intensities
+    its <- intensities(pdfData)
 
+    ## Plot
+    p <- (
+
+        ## Plot definition
+        ggplot(its)
+        + geom_col(aes(x=rainbowNo,y=relIntensity),
+                   width = its$width3db*pi/180,fill="#1f78b4")
+
+        ## Text labels
+        + geom_label(aes(x=as.numeric(rainbowNo)+0.2 ,y=relIntensity,label = paste(round(its$width3db,1),"deg")))
+
+
+        ## Annotation
+        + labs(title    = "Relative intensities and 3dB width of rainbows",
+               subtitle = paste("Intensity Method:", attr(pdfData,"intensityMethod")),
+               x        = "Rainbow No",
+               y        = "Relative Intensity [%]",
+               width    = "3dB width")
+
+        ## Design
+        + theme_rainbowLab()
+
+    )
+    print(p)
+}
