@@ -106,6 +106,7 @@ plotPDF <- function(pdfData)
 ##' @param pdfData data.table with aggregated rayData
 ##' @return data.table with maxima
 ##' @author Fredrik Wartenberg
+##' @export
 plotMaxima <- function(pdfData)
 {
     ## Calculate data points

@@ -110,11 +110,14 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 ##' @param cutoff exclude rows which are smaller than max*cutoff (0 = no cutoff)
 ##' @return data.table with pdf of angular difference (angDDeg)
 ##' @author Fredrik Wartenberg
-aggregateData <- function(rayData,aggregateRainbows = FALSE, aggregateLambda = FALSE, nBreaks=200)
+##' @export
+aggregateData <- function(rayData,
+                          aggregateRainbows = FALSE,
+                          aggregateLambda = FALSE,
+                          nBreaks=200)
 {
 
     ## Bin (in degrees!)
-    ##rayData$bin <- cut(rayData$angDDeg,breaks=nBreaks)
     binV <- seq(from=0,to=180,length=nBreaks)
     rayData$angD <- binV[findInterval(rayData$angDDeg,binV)] + 180/nBreaks*0.5
 
@@ -125,7 +128,6 @@ aggregateData <- function(rayData,aggregateRainbows = FALSE, aggregateLambda = F
                  by=.(rainbowNo,lambda,angD)]
 
     if(aggregateLambda){
-
         pdfData <- pdfData[,.(I=sum(I),lambda=0),by=.(rainbowNo,angD)]
     }
 
