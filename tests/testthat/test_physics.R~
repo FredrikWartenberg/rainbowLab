@@ -1,0 +1,15 @@
+source("./physics.R")
+##source("./fresnel.R")
+
+testFunction <- fresnelSpecific(n=1.33,dir="o2i")
+
+if(round(testFunction(pi/3)$R,4) != 0.0591)
+{
+    stop("Fresenel Failure")
+} else
+{
+    cat("Fresnel Test OK!")
+}
+
+
+

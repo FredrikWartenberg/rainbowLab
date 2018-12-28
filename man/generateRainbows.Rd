@@ -4,7 +4,8 @@
 \alias{generateRainbows}
 \title{Generate Rainbows}
 \usage{
-generateRainbows(rainbows = c(1, 2), nColors = 5, resolution = 1)
+generateRainbows(rainbows = c(1, 2), nColors = 5, resolution = 1,
+  plot = TRUE)
 }
 \arguments{
 \item{rainbows}{The raibows to be generated. Specified by a vector with the rainbow number.

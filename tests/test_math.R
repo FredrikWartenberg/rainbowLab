@@ -1,4 +1,3 @@
-source("ray.R")
 
 
 ## test anlge
@@ -20,3 +19,8 @@ print("Test angle")
 ##print(angle(x,y,z,vm45)*180/pi)
 print(angle(CM,v45)*180/pi)
 print(angle(CM,vm45)*180/pi)
+
+test_that("Angles of vectors relative to coord system", {
+  expect_equal(angle(CM,v45)*180/pi), 45)
+  expect_equal(angle(CM,vm45)*180/pi), -45)
+})

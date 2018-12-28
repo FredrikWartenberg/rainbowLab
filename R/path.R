@@ -153,7 +153,7 @@ sendLight <-function(rays,universe,observer,parameters)
             },
             error=function(cond)
             {
-                warning("observer error")
+                ##warning("observer error")
                 breakL = TRUE
             }
             )

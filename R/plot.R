@@ -26,7 +26,7 @@ theme_rainbowLab <- function(){
 ##' Mostly a plot to visualize the data. Use plotPDF to
 ##' view rainbow angles and distributions.
 ##' @title Plot Incident vs. angular difference
-##' @param rayData
+##' @param rayData data.table with rayData
 ##' @return nothing
 ##' @author Fredrik Wartenberg
 ##' @export
@@ -62,52 +62,13 @@ plotInVsOut <- function(rayData)
     print(p)
 }
 
-##' Plot PDF of intensities
-##'
-##' This function is deprecated use plotPDF instead
-##' @title Plot PDF from rayData
-##' @param rayData unaggregated data
-##' @param merge join all rainbow
-##' @return nothing
-##' @author Fredrik Wartenberg
-plotPDFLines <- function(rayData,merge=TRUE)
-{
 
-    if(merge){
-        rayData$rainbowNo <- as.integer(1)
-    }
-
-    p <- (
-        ggplot(data=rayData,
-               aes(angDDeg,
-                   color = as.factor(lambda)
-                   ))
-        + geom_freqpoly(bins=200,size=1)
-        + facet_grid(rainbowNo~.)
-        ##+ coord_polar(start=-pi/2,direction=-1)
-        ##+ scale_x_continuous(limits = c(0,360))
-
-        ## scales
-        + scale_color_manual(values=unique(rayData$color))
-
-        ## Legends
-        + labs(title = "Probability Distribution of Angular Difference",
-               subtitle = "vs. lambda",## and rainbow number",
-               x     = "Difference between incident and emitting angle [deg]",
-               fill = "wavelength")
-
-        ## Theme and design
-        + theme_rainbowLab()
-
-    )
-    print(p)
-}
 ##' Plot probablity density function for angular difference
 ##'
 ##' Plots the aggregated data in pdfData, no calculation is done here.
 ##' For different aggregation options see aggregateData
 ##' @title Plot angular difference PDF
-##' @param pdfData
+##' @param pdfData data.table with aggregated rayData
 ##' @return nothing
 ##' @author Fredrik Wartenberg
 ##' @export
@@ -137,13 +98,12 @@ plotPDF <- function(pdfData)
     print(p)
 }
 
-
 ##' Plot Angles of Maximum Intensities for Rainbow x Lambda
 ##'
 ##' Use function maxima to calculate data points. See
 ##' maxima function for details.
 ##' @title Plot Angles of Maximum Intensities
-##' @param pdfData
+##' @param pdfData data.table with aggregated rayData
 ##' @return data.table with maxima
 ##' @author Fredrik Wartenberg
 plotMaxima <- function(pdfData)
@@ -178,6 +138,52 @@ plotMaxima <- function(pdfData)
 
     invisible(mama)
 }
+
+##' Plot Refractive Index of water over Lambda
+##'
+##' Prints a color coded plot of the refractive index over lambda
+##' Data source: Segelstein 1981; The Complex Refractive Index of Water"
+##' @title Plot Refractive Index
+##' @return nothing
+##' @author Fredrik Wartenberg
+##' @export
+plotRefractiveIndex <- function()
+{
+    ## generate data table
+    lambda = seq(from   = physicalConstants()$visibleMin,
+                 to     = physicalConstants()$visibleMax,
+                 length = 100)
+    data <- data.table(lambda)
+    data$refractiveIndex <- refractiveIndex(data$lambda)
+    col <- sapply(FUN=lambda2rgb,X=data$lambda)
+    data$color <- col
+
+    ## compose plot
+    p <-
+        (
+            ## Define plot
+            ggplot(data=data)
+
+            + geom_point(aes(x=lambda,
+                             y=refractiveIndex,
+                             color=color),
+                         show.legend=FALSE)
+
+            ## Anntotation
+            + labs(title = "Refractive Index for Water for Visible Light",
+                   subtitle = "Source: Segelstein 1981; The Complex Refractive Index of Water",
+                   x = "lambda [nm]",
+                   y = "Refractive Index")
+
+            ## Theme and design
+            + theme_rainbowLab()
+        )
+
+    ## display
+    print(p)
+
+}
+
 
 ##' plot fresnel coefficients for water/air interface
 ##'
@@ -266,7 +272,7 @@ plotFresnel <- function(n=1.33,by=0.1)
 ##' over all lambda is above 50% of the maxiumum value.
 ##' (see https://en.wikipedia.org/wiki/Beamwidth)
 ##' @title Plot relative rainbow intensities and 3dB width.
-##' @param pdfData
+##' @param pdfData data.table with aggregated rayData
 ##' @return nothing
 ##' @author Fredrik Wartenberg
 ##' @export

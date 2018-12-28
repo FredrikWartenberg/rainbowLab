@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plotFresnel}
 \alias{plotFresnel}
-\title{Plot Fresenel Coefficients (tit)}
+\title{Plot Fresenel Coefficients}
 \usage{
 plotFresnel(n = 1.33, by = 0.1)
 }
@@ -15,10 +15,10 @@ plotFresnel(n = 1.33, by = 0.1)
 nothing
 }
 \description{
-plot fresnel for reflection on a water surface
+plot fresnel coefficients for water/air interface
 }
 \details{
-Plots reflection and transmission for s and p polarisations
+Plots reflection and transmission coeffcients for s and p polarisations
 assumes air water interface and n air = 1
 }
 \author{

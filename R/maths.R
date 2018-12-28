@@ -20,7 +20,7 @@ coordSystem <- function(x,v)
     if(norm(zHat,type="2") == 0)
     {
         zHat <- c(-x[2],x[1],0)
-          warning(paste("Coord Sys: x ", x, "and v", "are linearly dependent"))
+        ## warning(paste("Coord Sys: x ", x, "and v", "are linearly dependent"))
     }
 
     zHat <- zHat / norm(zHat,type="2")

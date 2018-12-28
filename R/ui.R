@@ -9,45 +9,6 @@
 ## ######################################
 
 
-##' Plot Refractive Index of water over Lambda
-##'
-##' Prints a color coded plot of the refractive index over lambda
-##' @title Plot Refractive Index
-##' @return nothing
-##' @author Fredrik Wartenberg
-##' @export
-plotRefractiveIndex <- function()
-{
-    ## generate data table
-    lambda = seq(from   = physicalConstants()$visibleMin,
-                 to     = physicalConstants()$visibleMax,
-                 length = 100)
-    data <- data.table(lambda)
-    data$refractiveIndex <- refractiveIndex(data$lambda)
-    col <- sapply(FUN=lambda2rgb,X=data$lambda)
-    data$color <- col
-
-    ## compose plot
-    p <-
-        (
-            ggplot(data=data)
-            + ggtitle(
-                  paste("Refractive Index for Water for Visible Light",
-                        "Source: Segelstein 1981",
-                        "The Complex Refractive Index of Water",sep="\n"))
-            ##+ scale_x_discrete(name="lambda [nm]")
-            + geom_point(aes(x=lambda,
-                             y=refractiveIndex,
-                             color=color),
-                         show.legend=FALSE)
-
-
-        )
-
-    ## display
-    print(p)
-
-}
 
 ##' Trace and spectralize one ray and show it in a 3D plot
 ##'
@@ -141,7 +102,7 @@ traceOneRay <- function(nColors=10,nInteractions=3,showNormals=FALSE)
 ##' See generateDataMatrix() for details.
 ##' @author Fredrik Wartenberg
 ##' @export
-generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
+generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1,plot=TRUE)
 {
 
     ## universe containing the interacting drop
@@ -154,15 +115,17 @@ generateRainbows <-function(rainbows=c(1,2),nColors = 5, resolution = 1)
                                   nColors = nColors,
                                   rainbows=rainbows)
     ## Plots
-    windows()
-    plotPDF(aggregateData(rayData))
+    if(plot)
+    {
+        windows()
+        plotPDF(aggregateData(rayData))
 
-    windows()
-    plotIntensities(aggregateData(rayData))
+        windows()
+        plotIntensities(aggregateData(rayData))
 
-    windows()
-    plotMaxima(aggregateData(rayData))
-
+        windows()
+        plotMaxima(aggregateData(rayData))
+    }
     ## Return data silently
     invisible(rayData)
 }

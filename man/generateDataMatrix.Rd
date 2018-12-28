@@ -4,17 +4,17 @@
 \alias{generateDataMatrix}
 \title{Generate Rainbow Spectral Distributions}
 \usage{
-generateDataMatrix(universe, angularSteps = 10000, lambdaSteps = 1,
-  rainbows = c(1, 2), intensity = "count")
+generateDataMatrix(universe, resolution = 10000, nColors = 1,
+  rainbows = c(1, 2))
 }
 \arguments{
 \item{universe}{The universe (typically one drop)}
 
+\item{rainbows}{Rainbows to generate, e.g. c(1,2,4) for first, second and fourth rainbow}
+
 \item{angularSteps}{Angular resolution for simulation steps}
 
 \item{lambdaSteps}{Stepsize for lambda between visibleMin and visibleMax}
-
-\item{rainbows}{Rainbows to generate, e.g. c(1,2,4) for first, second and fourth rainbow}
 
 \item{intensity}{How to calculate the intensity in the spectrum:
 count: just count the number of rays
