@@ -1,0 +1,67 @@
+---
+title: "rainbowLab Usage"
+author: "Fredrik Wartenberg"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{rainbowLab Usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Elementary Usage
+
+## Before you start
+
+### Installing (only needed once)
+
+`install.packages(path_to_file, repos = NULL)`
+
+### loading the library (needed after each new start of R environment
+
+`library(rainbowLab)`
+
+## 3d Visualisation of rays through a drop of water
+
+`traceOneRay()`
+
+## Rainbow PDF distributions
+
+`generateRainbows()`
+
+## Showing higher resolution PDF distributions using precomputed data
+
+`data(rayData)`
+
+`pdfData <- aggregateData(rayData)`
+
+`plotPDF(pdfData)`
+
+`plotIntesities(pdfData)`
+
+`plotMaxima(pdfData)`
+
+## Show physics functions used
+
+`plotFresnel()`
+`plotRefractiveIndex()`
+
+## Getting help
+
+`help(package=rainbowLab)`
+
+`?traceOneRay`
+
+`vignette("rainbowLab Description")` 
+
+`vignette("rainbowLab Usage")` (Displays this document)
+
+
+
