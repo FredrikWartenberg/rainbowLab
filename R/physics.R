@@ -128,15 +128,22 @@ lambda2rgb <-function (wavelength, alpha= 0.5, gamma=1)
 }
 
 
-## Segelstein, D., 1981: "The Complex Refractive Index of Water",
-## M.S. Thesis, University of Missouri--Kansas City
-## http://www.philiplaven.com/Segelstein.txt
-## refered to from
-## http://www.philiplaven.com/p20.html
 
-## returns a function whicht maps
-## lambda in nm to refractive index
-## for water
+##' Generator function for refractive index function
+##'
+##' This function is used to generate the actual function
+##' for mapping of lambda to refractive index
+##' refractiveIndex(lambda) [in nm]
+##' Source of values:
+##' Segelstein, D., 1981: The Complex Refractive Index of Water,
+##' M.S. Thesis, University of Missouri--Kansas City
+##' http://www.philiplaven.com/Segelstein.txt
+##' refered to from  http://www.philiplaven.com/p20.html
+##' @title generate refractive index function
+##' @param datafile with the measurement values (see details)
+##' @return a function to for refractive index
+##' @author Fredrik Wartenberg
+##' @export
 refractiveIndexFnGenerator <- function(datafile)
 {
     ## read data
