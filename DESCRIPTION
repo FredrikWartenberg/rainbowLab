@@ -1,6 +1,6 @@
 Package: rainbowLab
 Title: Generate Rainbows
-Version: 0.9.0.8
+Version: 0.9.0.9
 Authors@R: 
     person(given = "Fredrik",
            family = "Wartenberg",

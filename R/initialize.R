@@ -1,22 +1,7 @@
 ## Libraries and includes
-## library(rgl)
-## library(data.table)
-## library(pracma)
-## library(magrittr)
-## library(listviewer)
-## library(ggplot2)
-
-## source("R/drop.R")
-## source("R/ray.R")
-## source("R/shapes.R")
-## source("R/path.R")
-## source("R/physics.R")
-## source("R/maths.R")
-## source("R/plot.R")
-## source("R/generateRainbows.R")
-
 #' @import data.table
 #' @import rgl
+#' @import ggplot2
 
 
 ##' @title Retrieve default paramenters

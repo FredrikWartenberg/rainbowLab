@@ -59,9 +59,13 @@ blackBodyRadiation <- function(f,T=6000,pc=physcialConstants)
 {
     2* pc$h * f^3 / ( pc$c^2 * (exp(pc$h*f/pc$k/T)-1))
 }
-bbx <- function(x){bbr(x,6000,physConstants)}
+
 ## Plot BBR
-##curve(bbx,from=1,to=1E15)
+plotBbr <- function()
+{
+    bbx <- function(x){bbr(x,6000,physConstants)}
+    curve(bbx,from=1,to=1E15)
+}
 
 ##     This converts a given wavelength of light to an
 ##     approximate RGB color value. The wavelength must be given
@@ -148,7 +152,7 @@ refractiveIndexFnGenerator <- function(datafile)
 {
     ## read data
     riTab <- fread(datafile)
-    approxfun(riTab$Wavelength*1000,riTab$"Real Index")
+    stats::approxfun(riTab$Wavelength*1000,riTab$"Real Index")
 }
 
 ## The actual function to avoid table lookup

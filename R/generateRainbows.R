@@ -10,7 +10,7 @@
 ##' @return data.table with added fields, now called rayData
 ##' @author Fredrik Wartenberg
 ##' @export
-prepareData <- function(rayTracingData,simplify=FALSE,intensityMethod="fresnel")
+prepareData <- function(rayTracingData,simplify=FALSE,intensityMethod="fresnel_m")
 {
     ## Add fields in degrees
     rayTracingData$angInDeg  <- rayTracingData$angIn*180/pi
@@ -66,7 +66,6 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
     ## Prepare
     n = refractiveIndex(lambda)
 
-
     if(method == "schlick"){
 
         stop(paste("Intesity method no longer supported:", method))
@@ -77,16 +76,19 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
         ## Exit
         I = I * (1-schlick(thetaE,n))
 
-    } else if (method == "fresnel"){
+    } else if (grepl("fresnel",method)){
 
+        pol = unlist(strsplit(method,"_"))[2]
+        T = paste("T",pol,sep="_")
+        R = paste("R",pol,sep="_")
         ## we use _m; average over s and p polarisation
         ## Entry, consider transmission
-        I = unlist(mapply(FUN = fresnel,theta = thetaI,n=n,dir = "o2i")["T_m",])
+        I = unlist(mapply(FUN = fresnel,theta = thetaI,n=n,dir = "o2i")[T,])
         ## Internal Reflection, consider reflection
-        IR <- unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")["R_m",])
+        IR <- unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")[R,])
         I = I * (IR ^ nR)
         ## Exit, consider transmision
-        I = I * unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")["T_m",])
+        I = I * unlist(mapply(FUN = fresnel,theta = thetaR,n=n,dir = "i2o")[T,])
     } else if (method == "identity"){
         ## do nothing
         I = 1
@@ -114,8 +116,12 @@ calculateIntensity <- function(lambda,thetaI,thetaE,thetaR,nR,method="identity")
 aggregateData <- function(rayData,
                           aggregateRainbows = FALSE,
                           aggregateLambda = FALSE,
-                          nBreaks=200)
+                          nBreaks=200,
+                          normaliseIntensity = TRUE)
 {
+
+    ## get intesity method
+    iMeth <- attr(rayData,"intensityMethod")
 
     ## Bin (in degrees!)
     binV <- seq(from=0,to=180,length=nBreaks)
@@ -124,7 +130,7 @@ aggregateData <- function(rayData,
 
     ## Aggregate
     pdfData  <- rayData[!is.na(intensity),
-                 .(.N,I=sum(intensity),angDMean=mean(angDDeg)),
+                 .(.N,I=sum(intensity),angDMean=mean(angDDeg),intensityMethod = iMeth),
                  by=.(rainbowNo,lambda,angD)]
 
     if(aggregateLambda){
@@ -137,14 +143,16 @@ aggregateData <- function(rayData,
 
 
     ## Normalize (no 3db cutoff!)
-    sumI <- sum(pdfData$I)
-    pdfData$I <- pdfData$I/sumI
+    if(normaliseIntensity){
+        sumI <- sum(pdfData$I)
+        pdfData$I <- pdfData$I/sumI
+    }
 
     ## Add maxI per category
     pdfData[,maxI := max(I),by=.(rainbowNo,lambda)]
 
     ## inherit intesity method
-    attr(pdfData,"intensityMethod") <- attr(rayData,"intensityMethod")
+    attr(pdfData,"intensityMethod") <- iMeth
 
     return(pdfData)
 }
@@ -187,7 +195,7 @@ intensities <- function(pdfData)
 {
      iMeth <- attr(pdfData,"intensityMethod")
 
-    if(iMeth != "fresnel"){
+    if(!grepl("fresnel",iMeth)){
         warning(paste("Calculating intensities requires intensity method fresnel (data here uses)", iMeth))
     }
 
