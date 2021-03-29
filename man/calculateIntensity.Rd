@@ -4,8 +4,7 @@
 \alias{calculateIntensity}
 \title{Intensity change}
 \usage{
-calculateIntensity(lambda, thetaI, thetaE, thetaR, nR,
-  method = "identity")
+calculateIntensity(lambda, thetaI, thetaE, thetaR, nR, method = "identity")
 }
 \arguments{
 \item{lambda}{Wavelength nm}

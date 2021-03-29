@@ -242,6 +242,7 @@ spectralize <- function(rays,spectrum=uniformSpectrum())
 ##' @return a list with reflection (R) and transmission (T) coefficients for s (perpendicular) and p (parallel) polarization and their mean.
 ##' Access like res$R_s etc; syntax {T,R}_{s,p,m}
 ##' @author Fredrik Wartenberg
+##' @export
 fresnel <- function(theta,n,dir){
 
     ## Incident angle

@@ -1,11 +1,11 @@
 # rainbowLab
-R package to explore the formation of Rainbows
+R package to explore the formation of Rainbows.
 
 ## Install as
 
 library(devtools)
 
-install_github(repo="rainbowLab", username="FredrikWartenberg")
+install_github(repo="https://github.com/FredrikWartenberg/rainbowLab")
 
 library(rainbowLab)
 

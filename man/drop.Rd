@@ -4,8 +4,16 @@
 \alias{drop}
 \title{water drop}
 \usage{
-drop(x = 0, y = 0, z = 0, R = 100, color = "green",
-  alpha = "0.1", n = 1.33, ri = refractiveIndex)
+drop(
+  x = 0,
+  y = 0,
+  z = 0,
+  R = 100,
+  color = "green",
+  alpha = "0.1",
+  n = 1.33,
+  ri = refractiveIndex
+)
 }
 \arguments{
 \item{x}{x-coordinate of centre}

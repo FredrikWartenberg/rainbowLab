@@ -4,8 +4,12 @@
 \alias{generateDataMatrix}
 \title{Generate Rainbow Spectral Distributions}
 \usage{
-generateDataMatrix(universe, resolution = 10000, nColors = 1,
-  rainbows = c(1, 2))
+generateDataMatrix(
+  universe,
+  resolution = 10000,
+  nColors = 1,
+  rainbows = c(1, 2)
+)
 }
 \arguments{
 \item{universe}{The universe (typically one drop)}

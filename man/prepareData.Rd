@@ -4,8 +4,7 @@
 \alias{prepareData}
 \title{Prepare rayTracingData for analysis and plotting}
 \usage{
-prepareData(rayTracingData, simplify = FALSE,
-  intensityMethod = "fresnel_m")
+prepareData(rayTracingData, simplify = FALSE, intensityMethod = "fresnel_m")
 }
 \arguments{
 \item{rayTracingData}{data.table with raytracing data, one row per ray}

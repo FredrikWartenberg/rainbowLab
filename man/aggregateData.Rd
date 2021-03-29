@@ -4,8 +4,13 @@
 \alias{aggregateData}
 \title{aggregate rayData}
 \usage{
-aggregateData(rayData, aggregateRainbows = FALSE,
-  aggregateLambda = FALSE, nBreaks = 200, normaliseIntensity = TRUE)
+aggregateData(
+  rayData,
+  aggregateRainbows = FALSE,
+  aggregateLambda = FALSE,
+  nBreaks = 200,
+  normaliseIntensity = TRUE
+)
 }
 \arguments{
 \item{rayData}{data.table with rayData}
